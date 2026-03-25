@@ -449,12 +449,10 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, push, remove, onValue, update }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
   // ─────────────────────────────────────────────
   //  🔧 FIREBASE CONFIG — replace these values!
   //     (copy from Firebase Console → Project Settings → Your apps)
@@ -470,7 +468,6 @@
     measurementId:     "G-JHZ0KJBMH1"
   };
 
-  // Detect unconfigured state
   const isConfigured = !Object.values(firebaseConfig).some(v => v.startsWith("REPLACE_"));
 
   if (!isConfigured) {
@@ -478,18 +475,13 @@
     document.getElementById('config-banner').style.display = 'block';
   }
 
-  // ── Init Firebase ──
-  const app = isConfigured ? initializeApp(firebaseConfig) : null;
-  const db  = isConfigured ? getDatabase(app) : null;
+  const app = isConfigured ? firebase.initializeApp(firebaseConfig) : null;
+  const db  = isConfigured ? firebase.database() : null;
 
-  // ── In-memory state (synced from Firebase) ──
-  let events = {};
-  let rides  = {};
-  let needs  = {};
-  let activeFilter = 'ALL';
-  let claimTarget  = null;
-  let unlockedRides = {};
-  let pinTarget = null;
+  // ── State ──
+  let events = {}, rides = {}, needs = {};
+  let activeFilter = 'ALL', claimTarget = null;
+  let unlockedRides = {}, pinTarget = null;
 
   // ── Helpers ──
   function fmtDate(d) {
@@ -516,14 +508,14 @@
   // ── Views ──
   const tabs = document.querySelectorAll('.tab-btn');
   const tabViews = ['board','offer','need','admin'];
-  window.showView = function(id) {
+  function showView(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + id).classList.add('active');
     tabs.forEach((btn, i) => btn.classList.toggle('active', tabViews[i] === id));
     if (id === 'offer') populateEventSelect('offer-event');
     if (id === 'need')  populateEventSelect('need-event');
     if (id === 'admin') renderAdmin();
-  };
+  }
 
   // ── Filter ──
   function buildFilterBar() {
@@ -534,15 +526,15 @@
         `<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name} <span style="opacity:0.7;font-weight:400;">· ${fmtDate(e.date)}</span></button>`
       ).join('');
   }
-
-  window.filterRides = function(id, btn) {
+  function filterRides(id, btn) {
     activeFilter = id;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     renderRides();
-  };
+    renderNeeds();
+  }
 
-  // ── Render board ──
+  // ── Board ──
   function renderBoard() { buildFilterBar(); renderRides(); renderNeeds(); }
 
   function renderRides() {
@@ -567,7 +559,6 @@
     const needsArr = Object.entries(needs)
       .map(([id, n]) => ({ ...n, id }))
       .filter(n => activeFilter === 'ALL' || n.eventId === activeFilter);
-
     if (!needsArr.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
     grid.innerHTML = needsArr.map(n => {
@@ -584,11 +575,10 @@
     }).join('');
   }
 
-
+  function rideCardHTML(r, isAdmin) {
     const ev = getEvent(r.eventId);
     const passengerEntries = r.passengers ? Object.entries(r.passengers) : [];
-    const passengers = passengerEntries.map(([,v]) => v);
-    const avail = parseInt(r.seats) - passengers.length;
+    const avail = parseInt(r.seats) - passengerEntries.length;
     const full = avail <= 0;
     const unlocked = unlockedRides[r.id];
 
@@ -644,7 +634,7 @@
   }
 
   // ── Claim seat ──
-  window.openClaim = function(rideId) {
+  function openClaim(rideId) {
     claimTarget = rideId;
     const r = rides[rideId];
     const ev = getEvent(r.eventId);
@@ -652,14 +642,12 @@
       `Riding with ${r.driver} to "${ev ? ev.name : ''}"`;
     document.getElementById('claim-name').value = '';
     document.getElementById('claim-modal').classList.add('open');
-  };
-
-  window.closeModal = function() {
+  }
+  function closeModal() {
     document.getElementById('claim-modal').classList.remove('open');
     claimTarget = null;
-  };
-
-  window.confirmClaim = async function() {
+  }
+  function confirmClaim() {
     const name = document.getElementById('claim-name').value.trim();
     if (!name) { showToast('Please enter your name.'); return; }
     const r = rides[claimTarget];
@@ -667,13 +655,13 @@
     const passengers = r.passengers ? Object.values(r.passengers) : [];
     if (passengers.includes(name)) { showToast('You already claimed a seat!'); return; }
     if (passengers.length >= parseInt(r.seats)) { showToast('Sorry, no seats left!'); return; }
-    await push(ref(db, `rides/${claimTarget}/passengers`), name);
+    db.ref(`rides/${claimTarget}/passengers`).push(name);
     closeModal();
     showToast(`✅ Seat claimed! Have a great game, ${name}!`);
-  };
+  }
 
-  // ── Driver PIN modal ──
-  window.openPinModal = function(rideId) {
+  // ── Driver PIN ──
+  function openPinModal(rideId) {
     pinTarget = rideId;
     const r = rides[rideId];
     document.getElementById('pin-modal-sub').textContent = `Enter your PIN to manage ${r.driver}'s ride.`;
@@ -681,14 +669,12 @@
     document.getElementById('pin-error').style.display = 'none';
     document.getElementById('pin-modal').classList.add('open');
     setTimeout(() => document.getElementById('pin-input').focus(), 100);
-  };
-
-  window.closePinModal = function() {
+  }
+  function closePinModal() {
     document.getElementById('pin-modal').classList.remove('open');
     pinTarget = null;
-  };
-
-  window.confirmPin = function() {
+  }
+  function confirmPin() {
     const entered = document.getElementById('pin-input').value.trim();
     const r = rides[pinTarget];
     if (!r) return;
@@ -702,53 +688,49 @@
       document.getElementById('pin-input').value = '';
       document.getElementById('pin-input').focus();
     }
-  };
-
-  // Allow Enter key in PIN input
+  }
   document.getElementById('pin-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') window.confirmPin();
+    if (e.key === 'Enter') confirmPin();
   });
-
-  window.lockRide = function(rideId) {
+  function lockRide(rideId) {
     delete unlockedRides[rideId];
     renderBoard();
-  };
+  }
 
   // ── Remove passenger ──
-  window.removePassenger = async function(rideId, passengerKey) {
+  function removePassenger(rideId, passengerKey) {
     if (!unlockedRides[rideId]) return;
-    await remove(ref(db, `rides/${rideId}/passengers/${passengerKey}`));
+    db.ref(`rides/${rideId}/passengers/${passengerKey}`).remove();
     showToast('Passenger removed.');
-  };
+  }
 
-
+  // ── Need a seat ──
   function populateEventSelect(selId) {
     const sel = document.getElementById(selId);
     const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
     sel.innerHTML = '<option value="">— Select an event —</option>' +
       evArr.map(([id, e]) => `<option value="${id}">${e.name} (${fmtDate(e.date)})</option>`).join('');
   }
-
-  window.submitNeedSeat = async function() {
+  function submitNeedSeat() {
     const name    = document.getElementById('need-name').value.trim();
     const eventId = document.getElementById('need-event').value;
     const note    = document.getElementById('need-note').value.trim();
     if (!name || !eventId) { showToast('Please fill in your name and event.'); return; }
-    await push(ref(db, 'needs'), { name, eventId, note });
+    db.ref('needs').push({ name, eventId, note });
     showToast('🙋 Request posted! Drivers will see you need a seat.');
     document.getElementById('need-name').value = '';
     document.getElementById('need-event').value = '';
     document.getElementById('need-note').value = '';
     showView('board');
-  };
-
-  window.removeNeed = async function(id) {
+  }
+  function removeNeed(id) {
     if (!confirm('Remove this seat request?')) return;
-    await remove(ref(db, `needs/${id}`));
+    db.ref(`needs/${id}`).remove();
     showToast('Request removed.');
-  };
+  }
 
-  window.submitOffer = async function() {
+  // ── Offer ride ──
+  function submitOffer() {
     const name    = document.getElementById('offer-name').value.trim();
     const eventId = document.getElementById('offer-event').value;
     const from    = document.getElementById('offer-from').value.trim();
@@ -756,8 +738,8 @@
     const seats   = document.getElementById('offer-seats').value;
     const pin     = document.getElementById('offer-pin').value.trim();
     if (!name || !eventId || !from || !time) { showToast('Please fill in all fields.'); return; }
-    if (!pin || pin.length < 4 || !/^\d{4}$/.test(pin)) { showToast('Please enter a 4-digit PIN.'); return; }
-    await push(ref(db, 'rides'), { eventId, driver: name, from, time, seats: parseInt(seats), pin });
+    if (!pin || !/^\d{4}$/.test(pin)) { showToast('Please enter a 4-digit PIN.'); return; }
+    db.ref('rides').push({ eventId, driver: name, from, time, seats: parseInt(seats), pin });
     showToast('🚗 Ride posted! Your teammates will see it on the board.');
     document.getElementById('offer-name').value = '';
     document.getElementById('offer-event').value = '';
@@ -766,11 +748,10 @@
     document.getElementById('offer-seats').value = '3';
     document.getElementById('offer-pin').value = '';
     showView('board');
-  };
+  }
 
   // ── Admin ──
   function renderAdmin() {
-    // Events list
     const list = document.getElementById('admin-events-list');
     const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
     list.innerHTML = evArr.length
@@ -784,14 +765,12 @@
           </div>`).join('')
       : '<div style="color:var(--gray);font-size:14px;">No events yet.</div>';
 
-    // All rides
     const grid = document.getElementById('admin-rides-grid');
     const ridesArr = Object.entries(rides).map(([id, r]) => ({ ...r, id }));
     grid.innerHTML = ridesArr.length
       ? ridesArr.map(r => rideCardHTML(r, true)).join('')
       : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🚗</div><h3>No rides yet</h3></div>`;
 
-    // Seat requests
     const needsArr = Object.entries(needs).map(([id, n]) => ({ ...n, id }));
     let needsAdmin = document.getElementById('admin-needs-section');
     if (!needsAdmin) {
@@ -817,59 +796,53 @@
       : '<div style="color:var(--gray);font-size:14px;">No seat requests.</div>'}`;
   }
 
-  window.deleteNeed = async function(id) {
-    if (!confirm('Remove this seat request?')) return;
-    await remove(ref(db, `needs/${id}`));
-    showToast('Request removed.');
-  };
-
-  window.addEvent = async function() {
+  function addEvent() {
     const name = document.getElementById('admin-event-name').value.trim();
     const date = document.getElementById('admin-event-date').value;
     if (!name || !date) { showToast('Please fill in event name and date.'); return; }
-    await push(ref(db, 'events'), { name, date });
+    db.ref('events').push({ name, date });
     document.getElementById('admin-event-name').value = '';
     document.getElementById('admin-event-date').value = '';
     showToast('📅 Event added!');
-  };
-
-  window.deleteEvent = async function(id) {
+  }
+  function deleteEvent(id) {
     if (!confirm('Delete this event? Rides linked to it will also be removed.')) return;
-    await remove(ref(db, `events/${id}`));
-    // Remove linked rides
-    const linked = Object.entries(rides).filter(([,r]) => r.eventId === id).map(([rid]) => rid);
-    await Promise.all(linked.map(rid => remove(ref(db, `rides/${rid}`))));
+    db.ref(`events/${id}`).remove();
+    Object.entries(rides).filter(([,r]) => r.eventId === id).forEach(([rid]) => db.ref(`rides/${rid}`).remove());
+    Object.entries(needs).filter(([,n]) => n.eventId === id).forEach(([nid]) => db.ref(`needs/${nid}`).remove());
     showToast('Event removed.');
-  };
-
-  window.deleteRide = async function(id) {
+  }
+  function deleteRide(id) {
     if (!confirm('Remove this ride offer?')) return;
-    await remove(ref(db, `rides/${id}`));
+    db.ref(`rides/${id}`).remove();
     showToast('Ride removed.');
-  };
+  }
+  function deleteNeed(id) {
+    if (!confirm('Remove this seat request?')) return;
+    db.ref(`needs/${id}`).remove();
+    showToast('Request removed.');
+  }
 
   // ── Real-time listeners ──
   if (isConfigured) {
     let initialLoad = true;
-
-    onValue(ref(db, 'events'), snapshot => {
+    db.ref('events').on('value', snapshot => {
       events = snapshot.val() || {};
       renderBoard();
       if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-      if (document.getElementById('view-offer').classList.contains('active')) populateEventSelect();
+      if (document.getElementById('view-offer').classList.contains('active')) populateEventSelect('offer-event');
+      if (document.getElementById('view-need').classList.contains('active')) populateEventSelect('need-event');
       if (initialLoad) {
         document.getElementById('loading-screen').classList.add('hidden');
         initialLoad = false;
       }
     });
-
-    onValue(ref(db, 'rides'), snapshot => {
+    db.ref('rides').on('value', snapshot => {
       rides = snapshot.val() || {};
       renderBoard();
       if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
     });
-
-    onValue(ref(db, 'needs'), snapshot => {
+    db.ref('needs').on('value', snapshot => {
       needs = snapshot.val() || {};
       renderBoard();
       if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
