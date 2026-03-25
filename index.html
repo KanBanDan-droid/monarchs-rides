@@ -165,7 +165,7 @@
   .icon-btn { background:none; border:none; cursor:pointer; font-size:17px; opacity:0.5; transition:opacity 0.15s; padding:2px; }
   .icon-btn:hover { opacity:1; }
 
-  /* ── Passenger remove button ── */
+  /* ── Live indicator ── */
   .passenger-row {
     display:inline-flex; align-items:center; gap:4px;
     margin:2px 2px 2px 0;
@@ -193,7 +193,12 @@
   }
   .manage-ride-btn:hover { border-color: var(--blue); color: var(--blue); }
 
-  /* ── Live indicator ── */
+  @media(max-width:640px) {
+    .admin-grid { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .header-nav { gap:4px; }
+    .tab-btn { padding:6px 10px; font-size:11px; }
+  }
   .live-dot {
     display:inline-block; width:8px; height:8px; border-radius:50%;
     background:#22c55e; margin-right:6px; animation:livepulse 2s ease-in-out infinite;
@@ -225,11 +230,34 @@
   }
   .toast.show { opacity:1; }
 
+  /* ── Need a seat cards ── */
+  .need-section { margin-top: 48px; }
+  .need-section-heading {
+    font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:2px;
+    color:var(--blue-dark); margin-bottom:6px;
+  }
+  .need-section-sub { color:var(--gray); font-size:13px; margin-bottom:20px; }
+  .need-grid { display:flex; flex-wrap:wrap; gap:12px; }
+  .need-card {
+    background:var(--white); border-radius:12px; box-shadow:var(--shadow);
+    border-left: 4px solid #f59e0b;
+    padding: 14px 18px; display:flex; align-items:center; gap:14px;
+    min-width:220px; flex:1; max-width:320px;
+    transition: transform 0.15s;
+  }
+  .need-card:hover { transform:translateY(-2px); }
+  .need-card-icon { font-size:28px; flex-shrink:0; }
+  .need-card-name { font-weight:700; font-size:15px; color:var(--text); }
+  .need-card-event { font-size:12px; color:var(--gray); margin-top:2px; }
+  .need-card-note { font-size:12px; color:var(--text); margin-top:4px; font-style:italic; }
+  .need-card-remove {
+    margin-left:auto; background:none; border:none; font-size:16px;
+    cursor:pointer; opacity:0.35; transition:opacity 0.15s; flex-shrink:0; padding:2px;
+  }
+  .need-card-remove:hover { opacity:1; }
+
   @media(max-width:640px) {
-    .admin-grid { grid-template-columns:1fr; }
-    .form-grid { grid-template-columns:1fr; }
-    .header-nav { gap:4px; }
-    .tab-btn { padding:6px 10px; font-size:11px; }
+    .need-card { max-width:100%; }
   }
 </style>
 </head>
@@ -259,6 +287,7 @@
   <div class="header-nav">
     <button class="tab-btn active" onclick="showView('board')">🚗 Rides</button>
     <button class="tab-btn" onclick="showView('offer')">➕ Offer a Ride</button>
+    <button class="tab-btn" onclick="showView('need')">🙋 Need a Seat</button>
     <button class="tab-btn" onclick="showView('admin')">⚙️ Admin</button>
   </div>
 </header>
@@ -273,6 +302,38 @@
       <button class="filter-chip active" onclick="filterRides('ALL',this)">All Events</button>
     </div>
     <div class="rides-grid" id="rides-grid"></div>
+
+    <!-- Need a Seat section -->
+    <div class="need-section" id="need-section" style="display:none;">
+      <div class="need-section-heading">🙋 Looking for a Seat</div>
+      <div class="need-section-sub">These teammates still need a ride — if you have space, reach out!</div>
+      <div class="need-grid" id="need-grid"></div>
+    </div>
+  </div>
+
+  <!-- NEED A SEAT -->
+  <div class="view" id="view-need">
+    <div class="section-heading">Need a Seat?</div>
+    <div class="section-sub">Let your teammates know you're looking for a ride.</div>
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Your Name</label>
+          <input type="text" id="need-name" placeholder="e.g. Anna Nowak">
+        </div>
+        <div class="form-group full">
+          <label>Event</label>
+          <select id="need-event"><option value="">— Select an event —</option></select>
+        </div>
+        <div class="form-group full">
+          <label>Note <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <input type="text" id="need-note" placeholder="e.g. Can be picked up at Westbahnhof">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="submitNeedSeat()">🙋 Post My Request</button>
+      </div>
+    </div>
   </div>
 
   <!-- OFFER -->
@@ -424,10 +485,11 @@
   // ── In-memory state (synced from Firebase) ──
   let events = {};
   let rides  = {};
+  let needs  = {};
   let activeFilter = 'ALL';
   let claimTarget  = null;
-  let unlockedRides = {}; // rideId → true (unlocked this session)
-  let pinTarget = null;   // rideId being unlocked
+  let unlockedRides = {};
+  let pinTarget = null;
 
   // ── Helpers ──
   function fmtDate(d) {
@@ -453,11 +515,13 @@
 
   // ── Views ──
   const tabs = document.querySelectorAll('.tab-btn');
+  const tabViews = ['board','offer','need','admin'];
   window.showView = function(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + id).classList.add('active');
-    tabs.forEach((btn, i) => btn.classList.toggle('active', ['board','offer','admin'][i] === id));
-    if (id === 'offer') populateEventSelect();
+    tabs.forEach((btn, i) => btn.classList.toggle('active', tabViews[i] === id));
+    if (id === 'offer') populateEventSelect('offer-event');
+    if (id === 'need')  populateEventSelect('need-event');
     if (id === 'admin') renderAdmin();
   };
 
@@ -479,7 +543,7 @@
   };
 
   // ── Render board ──
-  function renderBoard() { buildFilterBar(); renderRides(); }
+  function renderBoard() { buildFilterBar(); renderRides(); renderNeeds(); }
 
   function renderRides() {
     const grid = document.getElementById('rides-grid');
@@ -497,7 +561,30 @@
     grid.innerHTML = ridesArr.map(r => rideCardHTML(r, false)).join('');
   }
 
-  function rideCardHTML(r, isAdmin) {
+  function renderNeeds() {
+    const section = document.getElementById('need-section');
+    const grid = document.getElementById('need-grid');
+    const needsArr = Object.entries(needs)
+      .map(([id, n]) => ({ ...n, id }))
+      .filter(n => activeFilter === 'ALL' || n.eventId === activeFilter);
+
+    if (!needsArr.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    grid.innerHTML = needsArr.map(n => {
+      const ev = getEvent(n.eventId);
+      return `<div class="need-card">
+        <div class="need-card-icon">🙋</div>
+        <div>
+          <div class="need-card-name">${n.name}</div>
+          <div class="need-card-event">${ev ? ev.name : '—'} · ${ev ? fmtDate(ev.date) : ''}</div>
+          ${n.note ? `<div class="need-card-note">"${n.note}"</div>` : ''}
+        </div>
+        <button class="need-card-remove" title="Remove request" onclick="removeNeed('${n.id}')">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+
     const ev = getEvent(r.eventId);
     const passengerEntries = r.passengers ? Object.entries(r.passengers) : [];
     const passengers = passengerEntries.map(([,v]) => v);
@@ -635,12 +722,31 @@
   };
 
 
-  function populateEventSelect() {
-    const sel = document.getElementById('offer-event');
+  function populateEventSelect(selId) {
+    const sel = document.getElementById(selId);
     const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
     sel.innerHTML = '<option value="">— Select an event —</option>' +
       evArr.map(([id, e]) => `<option value="${id}">${e.name} (${fmtDate(e.date)})</option>`).join('');
   }
+
+  window.submitNeedSeat = async function() {
+    const name    = document.getElementById('need-name').value.trim();
+    const eventId = document.getElementById('need-event').value;
+    const note    = document.getElementById('need-note').value.trim();
+    if (!name || !eventId) { showToast('Please fill in your name and event.'); return; }
+    await push(ref(db, 'needs'), { name, eventId, note });
+    showToast('🙋 Request posted! Drivers will see you need a seat.');
+    document.getElementById('need-name').value = '';
+    document.getElementById('need-event').value = '';
+    document.getElementById('need-note').value = '';
+    showView('board');
+  };
+
+  window.removeNeed = async function(id) {
+    if (!confirm('Remove this seat request?')) return;
+    await remove(ref(db, `needs/${id}`));
+    showToast('Request removed.');
+  };
 
   window.submitOffer = async function() {
     const name    = document.getElementById('offer-name').value.trim();
@@ -684,7 +790,38 @@
     grid.innerHTML = ridesArr.length
       ? ridesArr.map(r => rideCardHTML(r, true)).join('')
       : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🚗</div><h3>No rides yet</h3></div>`;
+
+    // Seat requests
+    const needsArr = Object.entries(needs).map(([id, n]) => ({ ...n, id }));
+    let needsAdmin = document.getElementById('admin-needs-section');
+    if (!needsAdmin) {
+      needsAdmin = document.createElement('div');
+      needsAdmin.id = 'admin-needs-section';
+      needsAdmin.style.marginTop = '40px';
+      document.getElementById('view-admin').appendChild(needsAdmin);
+    }
+    needsAdmin.innerHTML = `
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Seat Requests</div>
+      ${needsArr.length ? `<div class="need-grid">${needsArr.map(n => {
+        const ev = getEvent(n.eventId);
+        return `<div class="need-card">
+          <div class="need-card-icon">🙋</div>
+          <div>
+            <div class="need-card-name">${n.name}</div>
+            <div class="need-card-event">${ev ? ev.name : '—'} · ${ev ? fmtDate(ev.date) : ''}</div>
+            ${n.note ? `<div class="need-card-note">"${n.note}"</div>` : ''}
+          </div>
+          <button class="need-card-remove" onclick="deleteNeed('${n.id}')">🗑</button>
+        </div>`;
+      }).join('')}</div>`
+      : '<div style="color:var(--gray);font-size:14px;">No seat requests.</div>'}`;
   }
+
+  window.deleteNeed = async function(id) {
+    if (!confirm('Remove this seat request?')) return;
+    await remove(ref(db, `needs/${id}`));
+    showToast('Request removed.');
+  };
 
   window.addEvent = async function() {
     const name = document.getElementById('admin-event-name').value.trim();
@@ -728,6 +865,12 @@
 
     onValue(ref(db, 'rides'), snapshot => {
       rides = snapshot.val() || {};
+      renderBoard();
+      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+    });
+
+    onValue(ref(db, 'needs'), snapshot => {
+      needs = snapshot.val() || {};
       renderBoard();
       if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
     });
