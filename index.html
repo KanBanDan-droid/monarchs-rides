@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vienna Monarchs – Ride Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0057A8;
+    --blue-dark: #003f7d;
+    --blue-light: #1a6dc2;
+    --white: #ffffff;
+    --off-white: #f4f7fc;
+    --gray: #8a97a8;
+    --gray-light: #e2e9f2;
+    --text: #0d1b2e;
+    --seat-open: #d4edda;
+    --seat-open-text: #1a6632;
+    --seat-full: #f8d7da;
+    --seat-full-text: #842029;
+    --shadow: 0 4px 24px rgba(0,60,120,0.10);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); min-height: 100vh; }
+
+  /* ── Loading screen ── */
+  #loading-screen {
+    position: fixed; inset: 0;
+    background: var(--blue);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; color: white; gap: 16px;
+    transition: opacity 0.4s;
+  }
+  #loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-crown { font-size: 52px; animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+  .loading-title { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; }
+  .loading-dots { display:flex; gap:8px; }
+  .loading-dots span { width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.6);animation:dot 1.2s ease-in-out infinite; }
+  .loading-dots span:nth-child(2){animation-delay:.2s}
+  .loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+  /* ── Firebase config banner ── */
+  #config-banner {
+    display: none;
+    background: #fff3cd; border: 2px solid #ffc107;
+    border-radius: var(--radius); padding: 20px 24px;
+    margin: 32px auto; max-width: 700px;
+    font-size: 14px; line-height: 1.7; color: #7a5c00;
+  }
+  #config-banner h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #5c4000; }
+  #config-banner code { background: rgba(0,0,0,0.08); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 13px; }
+
+  /* ── Header ── */
+  header {
+    background: var(--blue); color: var(--white);
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    height: 64px; box-shadow: 0 2px 12px rgba(0,60,120,0.18);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-crown { font-size: 28px; line-height: 1; }
+  .logo-text { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; line-height:1.1; }
+  .logo-sub { font-size:10px; letter-spacing:3px; text-transform:uppercase; opacity:0.7; font-weight:500; }
+  .header-nav { display:flex; gap:8px; }
+  .tab-btn {
+    background:transparent; border:1.5px solid rgba(255,255,255,0.3);
+    color:rgba(255,255,255,0.8); padding:7px 18px; border-radius:8px;
+    cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+    letter-spacing:0.5px; transition:all 0.18s;
+  }
+  .tab-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
+  .tab-btn.active { background:var(--white); color:var(--blue); border-color:var(--white); }
+
+  /* ── Main ── */
+  main { max-width:960px; margin:0 auto; padding:32px 20px 60px; }
+  .view { display:none; }
+  .view.active { display:block; }
+  .section-heading { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:2px; color:var(--blue-dark); margin-bottom:6px; }
+  .section-sub { color:var(--gray); font-size:14px; margin-bottom:28px; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
+  .filter-chip {
+    padding:7px 18px; border-radius:99px; border:1.5px solid var(--gray-light);
+    background:var(--white); cursor:pointer; font-size:13px; font-weight:600;
+    color:var(--gray); transition:all 0.15s;
+  }
+  .filter-chip:hover { border-color:var(--blue); color:var(--blue); }
+  .filter-chip.active { background:var(--blue); border-color:var(--blue); color:var(--white); }
+
+  /* ── Ride cards ── */
+  .rides-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+  .ride-card {
+    background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow);
+    overflow:hidden; transition:transform 0.18s,box-shadow 0.18s; display:flex; flex-direction:column;
+  }
+  .ride-card:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(0,60,120,0.14); }
+  .ride-card-header { background:var(--blue); color:var(--white); padding:16px 20px 14px; }
+  .ride-event-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; opacity:0.7; font-weight:600; margin-bottom:4px; }
+  .ride-event-name { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; line-height:1.1; }
+  .ride-event-date { font-size:12px; opacity:0.75; margin-top:3px; }
+  .ride-card-body { padding:18px 20px; flex:1; display:flex; flex-direction:column; gap:10px; }
+  .ride-driver-name { font-weight:700; font-size:17px; color:var(--text); }
+  .ride-meta { display:flex; flex-direction:column; gap:6px; }
+  .ride-meta-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray); }
+  .ride-meta-row .icon { font-size:15px; }
+  .seats-badge {
+    display:inline-flex; align-items:center; gap:6px; padding:5px 12px;
+    border-radius:99px; font-size:12px; font-weight:700; margin-top:4px; width:fit-content;
+  }
+  .seats-badge.open { background:var(--seat-open); color:var(--seat-open-text); }
+  .seats-badge.full { background:var(--seat-full); color:var(--seat-full-text); }
+  .passengers-section { margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-light); }
+  .passengers-label { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
+  .passenger-tag {
+    display:inline-block; background:var(--off-white); border:1px solid var(--gray-light);
+    border-radius:99px; padding:3px 10px; font-size:12px; font-weight:600; color:var(--text); margin:2px 2px 2px 0;
+  }
+  .claim-btn { margin-top:auto; padding-top:14px; }
+  .btn {
+    display:inline-block; padding:10px 22px; border-radius:9px;
+    font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700;
+    cursor:pointer; border:none; transition:all 0.15s; width:100%; text-align:center;
+  }
+  .btn-primary { background:var(--blue); color:var(--white); }
+  .btn-primary:hover { background:var(--blue-dark); }
+  .btn-primary:disabled { background:var(--gray-light); color:var(--gray); cursor:not-allowed; }
+  .btn-outline { background:transparent; color:var(--blue); border:1.5px solid var(--blue); }
+  .btn-outline:hover { background:var(--blue); color:var(--white); }
+  .btn-danger { background:transparent; color:#c0392b; border:1.5px solid #c0392b; }
+  .btn-danger:hover { background:#c0392b; color:#fff; }
+
+  /* ── Empty state ── */
+  .empty-state { text-align:center; padding:60px 20px; color:var(--gray); }
+  .empty-state .empty-icon { font-size:48px; margin-bottom:12px; }
+  .empty-state h3 { font-size:18px; font-weight:700; margin-bottom:6px; color:var(--text); }
+
+  /* ── Form ── */
+  .form-card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:32px; max-width:560px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  label { font-size:12px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--gray); }
+  input, select {
+    padding:10px 14px; border:1.5px solid var(--gray-light); border-radius:9px;
+    font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text);
+    background:var(--off-white); transition:border-color 0.15s; outline:none; width:100%;
+  }
+  input:focus, select:focus { border-color:var(--blue); background:#fff; }
+  .form-actions { margin-top:20px; }
+
+  /* ── Admin ── */
+  .admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+  .events-list { display:flex; flex-direction:column; gap:12px; }
+  .event-item {
+    background:var(--white); border-radius:10px; padding:14px 18px;
+    box-shadow:var(--shadow); display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .event-item-name { font-weight:700; font-size:15px; }
+  .event-item-date { font-size:12px; color:var(--gray); margin-top:2px; }
+  .icon-btn { background:none; border:none; cursor:pointer; font-size:17px; opacity:0.5; transition:opacity 0.15s; padding:2px; }
+  .icon-btn:hover { opacity:1; }
+
+  /* ── Live indicator ── */
+  .live-dot {
+    display:inline-block; width:8px; height:8px; border-radius:50%;
+    background:#22c55e; margin-right:6px; animation:livepulse 2s ease-in-out infinite;
+  }
+  @keyframes livepulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,30,70,0.45);
+    z-index:200; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--white); border-radius:var(--radius); padding:32px;
+    max-width:420px; width:100%; box-shadow:0 16px 60px rgba(0,40,100,0.25);
+    animation:popIn 0.2s ease;
+  }
+  @keyframes popIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal h2 { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:1.5px; color:var(--blue-dark); margin-bottom:6px; }
+  .modal-sub { color:var(--gray); font-size:13px; margin-bottom:20px; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-actions .btn { flex:1; }
+
+  .toast {
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+    background:var(--blue-dark); color:#fff; padding:12px 28px;
+    border-radius:99px; font-weight:600; font-size:14px; z-index:300;
+    opacity:0; pointer-events:none; transition:opacity 0.25s; white-space:nowrap;
+  }
+  .toast.show { opacity:1; }
+
+  @media(max-width:640px) {
+    .admin-grid { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .header-nav { gap:4px; }
+    .tab-btn { padding:6px 10px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="loading-crown">👑</div>
+  <div class="loading-title">Vienna Monarchs</div>
+  <div class="loading-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- Firebase config warning (shown if not configured) -->
+<div id="config-banner">
+  <h3>⚠️ Firebase not configured yet</h3>
+  Open <code>index.html</code> in a text editor, find the <code>FIREBASE CONFIG</code> section near the top of the &lt;script&gt; block, and replace the placeholder values with your Firebase project credentials. See the <code>SETUP.md</code> file for step-by-step instructions.
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-crown">👑</div>
+    <div>
+      <div class="logo-text">Vienna Monarchs</div>
+      <div class="logo-sub">Ride Board</div>
+    </div>
+  </div>
+  <div class="header-nav">
+    <button class="tab-btn active" onclick="showView('board')">🚗 Rides</button>
+    <button class="tab-btn" onclick="showView('offer')">➕ Offer a Ride</button>
+    <button class="tab-btn" onclick="showView('admin')">⚙️ Admin</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- BOARD -->
+  <div class="view active" id="view-board">
+    <div class="section-heading">Ride Board</div>
+    <div class="section-sub"><span class="live-dot"></span>Live — updates in real time for all teammates.</div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-chip active" onclick="filterRides('ALL',this)">All Events</button>
+    </div>
+    <div class="rides-grid" id="rides-grid"></div>
+  </div>
+
+  <!-- OFFER -->
+  <div class="view" id="view-offer">
+    <div class="section-heading">Offer a Ride</div>
+    <div class="section-sub">Let your teammates know you have space in your car.</div>
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Your Name</label>
+          <input type="text" id="offer-name" placeholder="e.g. Max Mustermann">
+        </div>
+        <div class="form-group full">
+          <label>Event</label>
+          <select id="offer-event"><option value="">— Select an event —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Departure Location</label>
+          <input type="text" id="offer-from" placeholder="e.g. Schwedenplatz">
+        </div>
+        <div class="form-group">
+          <label>Departure Time</label>
+          <input type="time" id="offer-time">
+        </div>
+        <div class="form-group full">
+          <label>Free Seats</label>
+          <select id="offer-seats">
+            <option value="1">1 seat</option><option value="2">2 seats</option>
+            <option value="3" selected>3 seats</option><option value="4">4 seats</option>
+            <option value="5">5 seats</option><option value="6">6 seats</option><option value="7">7 seats</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="submitOffer()">🚗 Post My Ride</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="view" id="view-admin">
+    <div class="section-heading">Admin Panel</div>
+    <div class="section-sub">Manage upcoming events and all ride offers.</div>
+    <div class="admin-grid">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Add New Event</div>
+        <div class="form-card" style="padding:24px;">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Event Name</label>
+              <input type="text" id="admin-event-name" placeholder="e.g. League Game vs. Lions">
+            </div>
+            <div class="form-group full">
+              <label>Date</label>
+              <input type="date" id="admin-event-date">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addEvent()">Add Event</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Current Events</div>
+        <div class="events-list" id="admin-events-list"></div>
+      </div>
+    </div>
+    <div style="margin-top:40px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">All Ride Offers</div>
+      <div class="rides-grid" id="admin-rides-grid"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- CLAIM MODAL -->
+<div class="modal-overlay" id="claim-modal">
+  <div class="modal">
+    <h2>Claim a Seat</h2>
+    <div class="modal-sub" id="claim-modal-sub"></div>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="claim-name" placeholder="e.g. Anna Nowak">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmClaim()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, push, remove, onValue, update }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // ─────────────────────────────────────────────
+  //  🔧 FIREBASE CONFIG — replace these values!
+  //     (copy from Firebase Console → Project Settings → Your apps)
+  // ─────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBOIN9JhPKJcHo-Uufni3fIrVAJRdTu0ZM",
+    authDomain:        "vienna-monarchs-rides-e7aed.firebaseapp.com",
+    databaseURL:       "https://vienna-monarchs-rides-e7aed-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId:         "vienna-monarchs-rides-e7aed",
+    storageBucket:     "vienna-monarchs-rides-e7aed.firebasestorage.app",
+    messagingSenderId: "901569438565",
+    appId:             "1:901569438565:web:8ecc51b7e401842461378c"
+  };
+
+  // Detect unconfigured state
+  const isConfigured = !Object.values(firebaseConfig).some(v => v.startsWith("REPLACE_"));
+
+  if (!isConfigured) {
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('config-banner').style.display = 'block';
+  }
+
+  // ── Init Firebase ──
+  const app = isConfigured ? initializeApp(firebaseConfig) : null;
+  const db  = isConfigured ? getDatabase(app) : null;
+
+  // ── In-memory state (synced from Firebase) ──
+  let events = {};
+  let rides  = {};
+  let activeFilter = 'ALL';
+  let claimTarget  = null;
+
+  // ── Helpers ──
+  function fmtDate(d) {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+  }
+  function fmtTime(t) {
+    if (!t) return '';
+    let [h, min] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${String(min).padStart(2,'0')} ${ampm}`;
+  }
+  function getEvent(id) { return events[id]; }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ── Views ──
+  const tabs = document.querySelectorAll('.tab-btn');
+  window.showView = function(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    tabs.forEach((btn, i) => btn.classList.toggle('active', ['board','offer','admin'][i] === id));
+    if (id === 'offer') populateEventSelect();
+    if (id === 'admin') renderAdmin();
+  };
+
+  // ── Filter ──
+  function buildFilterBar() {
+    const bar = document.getElementById('filter-bar');
+    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    bar.innerHTML = `<button class="filter-chip ${activeFilter==='ALL'?'active':''}" onclick="filterRides('ALL',this)">All Events</button>` +
+      evArr.map(([id, e]) =>
+        `<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name}</button>`
+      ).join('');
+  }
+
+  window.filterRides = function(id, btn) {
+    activeFilter = id;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderRides();
+  };
+
+  // ── Render board ──
+  function renderBoard() { buildFilterBar(); renderRides(); }
+
+  function renderRides() {
+    const grid = document.getElementById('rides-grid');
+    const ridesArr = Object.entries(rides)
+      .map(([id, r]) => ({ ...r, id }))
+      .filter(r => activeFilter === 'ALL' || r.eventId === activeFilter);
+    if (!ridesArr.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🚗</div>
+        <h3>No rides posted yet</h3>
+        <p>Be the first to offer a ride to this event!</p>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = ridesArr.map(r => rideCardHTML(r, false)).join('');
+  }
+
+  function rideCardHTML(r, isAdmin) {
+    const ev = getEvent(r.eventId);
+    const passengers = r.passengers ? Object.values(r.passengers) : [];
+    const avail = parseInt(r.seats) - passengers.length;
+    const full = avail <= 0;
+
+    const passHtml = passengers.length
+      ? `<div class="passengers-section">
+          <div class="passengers-label">Passengers</div>
+          ${passengers.map(p => `<span class="passenger-tag">👤 ${p}</span>`).join('')}
+         </div>` : '';
+
+    const adminActions = isAdmin
+      ? `<div style="padding:0 20px 16px;display:flex;gap:8px;">
+           <button class="btn btn-danger" style="font-size:12px;padding:7px 14px;" onclick="deleteRide('${r.id}')">🗑 Remove</button>
+         </div>` : '';
+
+    return `<div class="ride-card">
+      <div class="ride-card-header">
+        <div class="ride-event-label">Event</div>
+        <div class="ride-event-name">${ev ? ev.name : '—'}</div>
+        ${ev ? `<div class="ride-event-date">📅 ${fmtDate(ev.date)}</div>` : ''}
+      </div>
+      <div class="ride-card-body">
+        <div class="ride-driver-name">🧑 ${r.driver}</div>
+        <div class="ride-meta">
+          <div class="ride-meta-row"><span class="icon">📍</span> ${r.from}</div>
+          <div class="ride-meta-row"><span class="icon">🕐</span> Departs ${fmtTime(r.time)}</div>
+        </div>
+        <div class="seats-badge ${full ? 'full' : 'open'}">
+          ${full ? '🔴 Full' : `🟢 ${avail} seat${avail !== 1 ? 's' : ''} available`}
+        </div>
+        ${passHtml}
+        ${!isAdmin ? `<div class="claim-btn">
+          <button class="btn btn-primary" ${full ? 'disabled' : ''} onclick="openClaim('${r.id}')">
+            ${full ? 'No seats left' : 'Claim a Seat'}
+          </button>
+        </div>` : ''}
+      </div>
+      ${adminActions}
+    </div>`;
+  }
+
+  // ── Claim seat ──
+  window.openClaim = function(rideId) {
+    claimTarget = rideId;
+    const r = rides[rideId];
+    const ev = getEvent(r.eventId);
+    document.getElementById('claim-modal-sub').textContent =
+      `Riding with ${r.driver} to "${ev ? ev.name : ''}"`;
+    document.getElementById('claim-name').value = '';
+    document.getElementById('claim-modal').classList.add('open');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('claim-modal').classList.remove('open');
+    claimTarget = null;
+  };
+
+  window.confirmClaim = async function() {
+    const name = document.getElementById('claim-name').value.trim();
+    if (!name) { showToast('Please enter your name.'); return; }
+    const r = rides[claimTarget];
+    if (!r) return;
+    const passengers = r.passengers ? Object.values(r.passengers) : [];
+    if (passengers.includes(name)) { showToast('You already claimed a seat!'); return; }
+    if (passengers.length >= parseInt(r.seats)) { showToast('Sorry, no seats left!'); return; }
+    await push(ref(db, `rides/${claimTarget}/passengers`), name);
+    closeModal();
+    showToast(`✅ Seat claimed! Have a great game, ${name}!`);
+  };
+
+  // ── Offer ride ──
+  function populateEventSelect() {
+    const sel = document.getElementById('offer-event');
+    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    sel.innerHTML = '<option value="">— Select an event —</option>' +
+      evArr.map(([id, e]) => `<option value="${id}">${e.name} (${fmtDate(e.date)})</option>`).join('');
+  }
+
+  window.submitOffer = async function() {
+    const name    = document.getElementById('offer-name').value.trim();
+    const eventId = document.getElementById('offer-event').value;
+    const from    = document.getElementById('offer-from').value.trim();
+    const time    = document.getElementById('offer-time').value;
+    const seats   = document.getElementById('offer-seats').value;
+    if (!name || !eventId || !from || !time) { showToast('Please fill in all fields.'); return; }
+    await push(ref(db, 'rides'), { eventId, driver: name, from, time, seats: parseInt(seats) });
+    showToast('🚗 Ride posted! Your teammates will see it on the board.');
+    document.getElementById('offer-name').value = '';
+    document.getElementById('offer-event').value = '';
+    document.getElementById('offer-from').value = '';
+    document.getElementById('offer-time').value = '';
+    document.getElementById('offer-seats').value = '3';
+    showView('board');
+  };
+
+  // ── Admin ──
+  function renderAdmin() {
+    // Events list
+    const list = document.getElementById('admin-events-list');
+    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    list.innerHTML = evArr.length
+      ? evArr.map(([id, e]) => `
+          <div class="event-item">
+            <div class="event-item-info">
+              <div class="event-item-name">${e.name}</div>
+              <div class="event-item-date">📅 ${fmtDate(e.date)}</div>
+            </div>
+            <button class="icon-btn" onclick="deleteEvent('${id}')">🗑</button>
+          </div>`).join('')
+      : '<div style="color:var(--gray);font-size:14px;">No events yet.</div>';
+
+    // All rides
+    const grid = document.getElementById('admin-rides-grid');
+    const ridesArr = Object.entries(rides).map(([id, r]) => ({ ...r, id }));
+    grid.innerHTML = ridesArr.length
+      ? ridesArr.map(r => rideCardHTML(r, true)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🚗</div><h3>No rides yet</h3></div>`;
+  }
+
+  window.addEvent = async function() {
+    const name = document.getElementById('admin-event-name').value.trim();
+    const date = document.getElementById('admin-event-date').value;
+    if (!name || !date) { showToast('Please fill in event name and date.'); return; }
+    await push(ref(db, 'events'), { name, date });
+    document.getElementById('admin-event-name').value = '';
+    document.getElementById('admin-event-date').value = '';
+    showToast('📅 Event added!');
+  };
+
+  window.deleteEvent = async function(id) {
+    if (!confirm('Delete this event? Rides linked to it will also be removed.')) return;
+    await remove(ref(db, `events/${id}`));
+    // Remove linked rides
+    const linked = Object.entries(rides).filter(([,r]) => r.eventId === id).map(([rid]) => rid);
+    await Promise.all(linked.map(rid => remove(ref(db, `rides/${rid}`))));
+    showToast('Event removed.');
+  };
+
+  window.deleteRide = async function(id) {
+    if (!confirm('Remove this ride offer?')) return;
+    await remove(ref(db, `rides/${id}`));
+    showToast('Ride removed.');
+  };
+
+  // ── Real-time listeners ──
+  if (isConfigured) {
+    let initialLoad = true;
+
+    onValue(ref(db, 'events'), snapshot => {
+      events = snapshot.val() || {};
+      renderBoard();
+      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+      if (document.getElementById('view-offer').classList.contains('active')) populateEventSelect();
+      if (initialLoad) {
+        document.getElementById('loading-screen').classList.add('hidden');
+        initialLoad = false;
+      }
+    });
+
+    onValue(ref(db, 'rides'), snapshot => {
+      rides = snapshot.val() || {};
+      renderBoard();
+      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+    });
+  }
+</script>
+</body>
+</html>
