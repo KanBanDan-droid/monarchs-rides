@@ -165,6 +165,34 @@
   .icon-btn { background:none; border:none; cursor:pointer; font-size:17px; opacity:0.5; transition:opacity 0.15s; padding:2px; }
   .icon-btn:hover { opacity:1; }
 
+  /* ── Passenger remove button ── */
+  .passenger-row {
+    display:inline-flex; align-items:center; gap:4px;
+    margin:2px 2px 2px 0;
+  }
+  .passenger-tag.removable {
+    border-color: #f5c2c7;
+    background: #fff5f5;
+  }
+  .remove-passenger-btn {
+    background: #c0392b; color: white; border: none;
+    border-radius: 99px; width: 18px; height: 18px;
+    font-size: 11px; line-height: 1; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background 0.15s;
+    padding: 0;
+  }
+  .remove-passenger-btn:hover { background: #96281b; }
+  .manage-ride-btn {
+    margin-top: 8px;
+    font-size: 12px; padding: 6px 14px;
+    background: transparent; color: var(--gray);
+    border: 1.5px solid var(--gray-light); border-radius: 8px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600;
+    transition: all 0.15s; width: 100%;
+  }
+  .manage-ride-btn:hover { border-color: var(--blue); color: var(--blue); }
+
   /* ── Live indicator ── */
   .live-dot {
     display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -277,6 +305,11 @@
             <option value="5">5 seats</option><option value="6">6 seats</option><option value="7">7 seats</option>
           </select>
         </div>
+        <div class="form-group full">
+          <label>Driver PIN (4 digits)</label>
+          <input type="password" id="offer-pin" maxlength="4" placeholder="Choose a PIN to manage your ride" inputmode="numeric">
+          <span style="font-size:11px;color:var(--gray);margin-top:2px;">You'll need this to remove passengers later.</span>
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="submitOffer()">🚗 Post My Ride</button>
@@ -336,6 +369,23 @@
   </div>
 </div>
 
+<!-- DRIVER PIN MODAL -->
+<div class="modal-overlay" id="pin-modal">
+  <div class="modal">
+    <h2>Driver Access</h2>
+    <div class="modal-sub" id="pin-modal-sub">Enter your PIN to manage passengers.</div>
+    <div class="form-group">
+      <label>Your 4-digit PIN</label>
+      <input type="password" id="pin-input" maxlength="4" placeholder="••••" inputmode="numeric">
+    </div>
+    <div id="pin-error" style="color:#c0392b;font-size:13px;margin-top:8px;display:none;">Incorrect PIN. Try again.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closePinModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmPin()">Unlock</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
@@ -349,13 +399,13 @@
   //     (copy from Firebase Console → Project Settings → Your apps)
   // ─────────────────────────────────────────────
   const firebaseConfig = {
-    apiKey:            "AIzaSyBOIN9JhPKJcHo-Uufni3fIrVAJRdTu0ZM",
-    authDomain:        "vienna-monarchs-rides-e7aed.firebaseapp.com",
-    databaseURL:       "https://vienna-monarchs-rides-e7aed-default-rtdb.europe-west1.firebasedatabase.app/",
-    projectId:         "vienna-monarchs-rides-e7aed",
-    storageBucket:     "vienna-monarchs-rides-e7aed.firebasestorage.app",
-    messagingSenderId: "901569438565",
-    appId:             "1:901569438565:web:8ecc51b7e401842461378c"
+    apiKey:            "REPLACE_WITH_YOUR_API_KEY",
+    authDomain:        "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+    databaseURL:       "REPLACE_WITH_YOUR_DATABASE_URL",
+    projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket:     "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+    appId:             "REPLACE_WITH_YOUR_APP_ID"
   };
 
   // Detect unconfigured state
@@ -375,6 +425,8 @@
   let rides  = {};
   let activeFilter = 'ALL';
   let claimTarget  = null;
+  let unlockedRides = {}; // rideId → true (unlocked this session)
+  let pinTarget = null;   // rideId being unlocked
 
   // ── Helpers ──
   function fmtDate(d) {
@@ -446,15 +498,30 @@
 
   function rideCardHTML(r, isAdmin) {
     const ev = getEvent(r.eventId);
-    const passengers = r.passengers ? Object.values(r.passengers) : [];
+    const passengerEntries = r.passengers ? Object.entries(r.passengers) : [];
+    const passengers = passengerEntries.map(([,v]) => v);
     const avail = parseInt(r.seats) - passengers.length;
     const full = avail <= 0;
+    const unlocked = unlockedRides[r.id];
 
-    const passHtml = passengers.length
+    const passHtml = passengerEntries.length
       ? `<div class="passengers-section">
           <div class="passengers-label">Passengers</div>
-          ${passengers.map(p => `<span class="passenger-tag">👤 ${p}</span>`).join('')}
+          ${passengerEntries.map(([key, name]) =>
+            unlocked
+              ? `<span class="passenger-row">
+                   <span class="passenger-tag removable">👤 ${name}</span>
+                   <button class="remove-passenger-btn" title="Remove ${name}" onclick="removePassenger('${r.id}','${key}')">✕</button>
+                 </span>`
+              : `<span class="passenger-tag">👤 ${name}</span>`
+          ).join('')}
          </div>` : '';
+
+    const manageBtn = !isAdmin && r.pin
+      ? unlocked
+        ? `<button class="manage-ride-btn" style="color:#1a6632;border-color:#a3d9b1;" onclick="lockRide('${r.id}')">🔒 Lock driver mode</button>`
+        : `<button class="manage-ride-btn" onclick="openPinModal('${r.id}')">🔑 I'm the driver — manage ride</button>`
+      : '';
 
     const adminActions = isAdmin
       ? `<div style="padding:0 20px 16px;display:flex;gap:8px;">
@@ -477,6 +544,7 @@
           ${full ? '🔴 Full' : `🟢 ${avail} seat${avail !== 1 ? 's' : ''} available`}
         </div>
         ${passHtml}
+        ${manageBtn}
         ${!isAdmin ? `<div class="claim-btn">
           <button class="btn btn-primary" ${full ? 'disabled' : ''} onclick="openClaim('${r.id}')">
             ${full ? 'No seats left' : 'Claim a Seat'}
@@ -516,7 +584,56 @@
     showToast(`✅ Seat claimed! Have a great game, ${name}!`);
   };
 
-  // ── Offer ride ──
+  // ── Driver PIN modal ──
+  window.openPinModal = function(rideId) {
+    pinTarget = rideId;
+    const r = rides[rideId];
+    document.getElementById('pin-modal-sub').textContent = `Enter your PIN to manage ${r.driver}'s ride.`;
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-error').style.display = 'none';
+    document.getElementById('pin-modal').classList.add('open');
+    setTimeout(() => document.getElementById('pin-input').focus(), 100);
+  };
+
+  window.closePinModal = function() {
+    document.getElementById('pin-modal').classList.remove('open');
+    pinTarget = null;
+  };
+
+  window.confirmPin = function() {
+    const entered = document.getElementById('pin-input').value.trim();
+    const r = rides[pinTarget];
+    if (!r) return;
+    if (entered === String(r.pin)) {
+      unlockedRides[pinTarget] = true;
+      closePinModal();
+      showToast('🔓 Driver mode on — you can now remove passengers.');
+      renderBoard();
+    } else {
+      document.getElementById('pin-error').style.display = 'block';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-input').focus();
+    }
+  };
+
+  // Allow Enter key in PIN input
+  document.getElementById('pin-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.confirmPin();
+  });
+
+  window.lockRide = function(rideId) {
+    delete unlockedRides[rideId];
+    renderBoard();
+  };
+
+  // ── Remove passenger ──
+  window.removePassenger = async function(rideId, passengerKey) {
+    if (!unlockedRides[rideId]) return;
+    await remove(ref(db, `rides/${rideId}/passengers/${passengerKey}`));
+    showToast('Passenger removed.');
+  };
+
+
   function populateEventSelect() {
     const sel = document.getElementById('offer-event');
     const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
@@ -530,14 +647,17 @@
     const from    = document.getElementById('offer-from').value.trim();
     const time    = document.getElementById('offer-time').value;
     const seats   = document.getElementById('offer-seats').value;
+    const pin     = document.getElementById('offer-pin').value.trim();
     if (!name || !eventId || !from || !time) { showToast('Please fill in all fields.'); return; }
-    await push(ref(db, 'rides'), { eventId, driver: name, from, time, seats: parseInt(seats) });
+    if (!pin || pin.length < 4 || !/^\d{4}$/.test(pin)) { showToast('Please enter a 4-digit PIN.'); return; }
+    await push(ref(db, 'rides'), { eventId, driver: name, from, time, seats: parseInt(seats), pin });
     showToast('🚗 Ride posted! Your teammates will see it on the board.');
     document.getElementById('offer-name').value = '';
     document.getElementById('offer-event').value = '';
     document.getElementById('offer-from').value = '';
     document.getElementById('offer-time').value = '';
     document.getElementById('offer-seats').value = '3';
+    document.getElementById('offer-pin').value = '';
     showView('board');
   };
 
