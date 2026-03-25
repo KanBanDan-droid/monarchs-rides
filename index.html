@@ -467,7 +467,7 @@
     const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
     bar.innerHTML = `<button class="filter-chip ${activeFilter==='ALL'?'active':''}" onclick="filterRides('ALL',this)">All Events</button>` +
       evArr.map(([id, e]) =>
-        `<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name}</button>`
+        `<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name} <span style="opacity:0.7;font-weight:400;">· ${fmtDate(e.date)}</span></button>`
       ).join('');
   }
 
