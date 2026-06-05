@@ -7,31 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --blue: #0057A8;
-    --blue-dark: #003f7d;
-    --blue-light: #1a6dc2;
-    --white: #ffffff;
-    --off-white: #f4f7fc;
-    --gray: #8a97a8;
-    --gray-light: #e2e9f2;
-    --text: #0d1b2e;
-    --seat-open: #d4edda;
-    --seat-open-text: #1a6632;
-    --seat-full: #f8d7da;
-    --seat-full-text: #842029;
-    --shadow: 0 4px 24px rgba(0,60,120,0.10);
-    --radius: 14px;
+    --blue: #0057A8; --blue-dark: #003f7d; --white: #ffffff;
+    --off-white: #f4f7fc; --gray: #8a97a8; --gray-light: #e2e9f2;
+    --text: #0d1b2e; --shadow: 0 4px 24px rgba(0,60,120,0.10); --radius: 14px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); min-height: 100vh; }
 
-  /* ── Loading screen ── */
+  /* Loading */
   #loading-screen {
-    position: fixed; inset: 0;
-    background: var(--blue);
+    position: fixed; inset: 0; background: var(--blue);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 999; color: white; gap: 16px;
-    transition: opacity 0.4s;
+    z-index: 999; color: white; gap: 16px; transition: opacity 0.4s;
   }
   #loading-screen.hidden { opacity: 0; pointer-events: none; }
   .loading-crown { font-size: 52px; animation: pulse 1.2s ease-in-out infinite; }
@@ -39,88 +26,102 @@
   .loading-title { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; }
   .loading-dots { display:flex; gap:8px; }
   .loading-dots span { width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.6);animation:dot 1.2s ease-in-out infinite; }
-  .loading-dots span:nth-child(2){animation-delay:.2s}
-  .loading-dots span:nth-child(3){animation-delay:.4s}
+  .loading-dots span:nth-child(2){animation-delay:.2s} .loading-dots span:nth-child(3){animation-delay:.4s}
   @keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
 
-  /* ── Firebase config banner ── */
-  #config-banner {
-    display: none;
-    background: #fff3cd; border: 2px solid #ffc107;
-    border-radius: var(--radius); padding: 20px 24px;
-    margin: 32px auto; max-width: 700px;
-    font-size: 14px; line-height: 1.7; color: #7a5c00;
-  }
-  #config-banner h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #5c4000; }
-  #config-banner code { background: rgba(0,0,0,0.08); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 13px; }
-
-  /* ── Header ── */
+  /* Header */
   header {
-    background: var(--blue); color: var(--white);
-    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
-    height: 64px; box-shadow: 0 2px 12px rgba(0,60,120,0.18);
-    position: sticky; top: 0; z-index: 100;
+    background: var(--blue); color: var(--white); padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px; box-shadow: 0 2px 12px rgba(0,60,120,0.18); position: sticky; top: 0; z-index: 100;
   }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-crown { font-size: 28px; line-height: 1; }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-crown { font-size:28px; line-height:1; }
   .logo-text { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; line-height:1.1; }
   .logo-sub { font-size:10px; letter-spacing:3px; text-transform:uppercase; opacity:0.7; font-weight:500; }
   .header-nav { display:flex; gap:8px; }
   .tab-btn {
-    background:transparent; border:1.5px solid rgba(255,255,255,0.3);
-    color:rgba(255,255,255,0.8); padding:7px 18px; border-radius:8px;
-    cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
-    letter-spacing:0.5px; transition:all 0.18s;
+    background:transparent; border:1.5px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.8);
+    padding:7px 18px; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600; letter-spacing:0.5px; transition:all 0.18s;
   }
   .tab-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
   .tab-btn.active { background:var(--white); color:var(--blue); border-color:var(--white); }
 
-  /* ── Main ── */
-  main { max-width:960px; margin:0 auto; padding:32px 20px 60px; }
-  .view { display:none; }
-  .view.active { display:block; }
+  /* Main */
+  main { max-width:1100px; margin:0 auto; padding:32px 20px 60px; }
+  .view { display:none; } .view.active { display:block; }
   .section-heading { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:2px; color:var(--blue-dark); margin-bottom:6px; }
   .section-sub { color:var(--gray); font-size:14px; margin-bottom:28px; }
+  .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e; margin-right:6px; animation:livepulse 2s ease-in-out infinite; }
+  @keyframes livepulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-  /* ── Filter bar ── */
+  /* Filter bar */
   .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
   .filter-chip {
     padding:7px 18px; border-radius:99px; border:1.5px solid var(--gray-light);
-    background:var(--white); cursor:pointer; font-size:13px; font-weight:600;
-    color:var(--gray); transition:all 0.15s;
+    background:var(--white); cursor:pointer; font-size:13px; font-weight:600; color:var(--gray); transition:all 0.15s;
   }
   .filter-chip:hover { border-color:var(--blue); color:var(--blue); }
   .filter-chip.active { background:var(--blue); border-color:var(--blue); color:var(--white); }
 
-  /* ── Ride cards ── */
-  .rides-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+  /* Board layout: rides left, needs sidebar right */
+  .board-layout { display:grid; grid-template-columns:1fr 320px; gap:28px; align-items:start; }
+  @media(max-width:800px) { .board-layout { grid-template-columns:1fr; } }
+
+  /* Ride cards */
+  .rides-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
   .ride-card {
     background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow);
-    overflow:hidden; transition:transform 0.18s,box-shadow 0.18s; display:flex; flex-direction:column;
+    overflow:hidden; display:flex; flex-direction:column; transition:box-shadow 0.18s;
   }
-  .ride-card:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(0,60,120,0.14); }
-  .ride-card-header { background:var(--blue); color:var(--white); padding:16px 20px 14px; }
-  .ride-event-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; opacity:0.7; font-weight:600; margin-bottom:4px; }
-  .ride-event-name { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; line-height:1.1; }
-  .ride-event-date { font-size:12px; opacity:0.75; margin-top:3px; }
-  .ride-card-body { padding:18px 20px; flex:1; display:flex; flex-direction:column; gap:10px; }
-  .ride-driver-name { font-weight:700; font-size:17px; color:var(--text); }
-  .ride-meta { display:flex; flex-direction:column; gap:6px; }
-  .ride-meta-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray); }
-  .ride-meta-row .icon { font-size:15px; }
+  .ride-card.drag-over {
+    box-shadow: 0 0 0 3px #22c55e, 0 8px 32px rgba(0,60,120,0.14);
+    transform: translateY(-2px);
+  }
+  .ride-card-header { background:var(--blue); color:var(--white); padding:14px 18px 12px; }
+  .ride-event-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; opacity:0.7; font-weight:600; margin-bottom:3px; }
+  .ride-event-name { font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:1px; line-height:1.1; }
+  .ride-event-date { font-size:12px; opacity:0.75; margin-top:2px; }
+  .ride-card-body { padding:16px 18px; flex:1; display:flex; flex-direction:column; gap:10px; }
+  .ride-driver-name { font-weight:700; font-size:16px; }
+  .ride-meta { display:flex; flex-direction:column; gap:5px; }
+  .ride-meta-row { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--gray); }
   .seats-badge {
-    display:inline-flex; align-items:center; gap:6px; padding:5px 12px;
-    border-radius:99px; font-size:12px; font-weight:700; margin-top:4px; width:fit-content;
+    display:inline-flex; align-items:center; gap:5px; padding:4px 11px;
+    border-radius:99px; font-size:12px; font-weight:700; width:fit-content;
   }
-  .seats-badge.open { background:var(--seat-open); color:var(--seat-open-text); }
-  .seats-badge.full { background:var(--seat-full); color:var(--seat-full-text); }
-  .passengers-section { margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-light); }
-  .passengers-label { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
+  .seats-badge.open { background:#d4edda; color:#1a6632; }
+  .seats-badge.full { background:#f8d7da; color:#842029; }
+
+  /* Drop zone inside card */
+  .drop-zone {
+    border: 2px dashed var(--gray-light); border-radius:10px;
+    padding: 10px 12px; margin-top:6px;
+    min-height: 44px; transition: all 0.15s;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .drop-zone.has-passengers { border-style: solid; border-color: transparent; background: var(--off-white); }
+  .drop-zone.drag-active { border-color:#22c55e; background:#f0fdf4; }
+  .drop-zone-hint { font-size:12px; color:var(--gray); font-style:italic; pointer-events:none; }
+
+  /* Passenger tags inside drop zone */
   .passenger-tag {
-    display:inline-block; background:var(--off-white); border:1px solid var(--gray-light);
-    border-radius:99px; padding:3px 10px; font-size:12px; font-weight:600; color:var(--text); margin:2px 2px 2px 0;
+    display:inline-flex; align-items:center; gap:5px;
+    background:var(--white); border:1px solid var(--gray-light);
+    border-radius:99px; padding:3px 8px 3px 10px; font-size:12px; font-weight:600; color:var(--text);
+    cursor:grab; transition: box-shadow 0.12s;
   }
-  .claim-btn { margin-top:auto; padding-top:14px; }
+  .passenger-tag:active { cursor:grabbing; }
+  .passenger-tag:hover { box-shadow: 0 2px 8px rgba(0,60,120,0.12); border-color: #b0c4de; }
+  .passenger-remove {
+    background:none; border:none; cursor:pointer; font-size:13px; color:var(--gray);
+    line-height:1; padding:0 1px; transition:color 0.12s;
+  }
+  .passenger-remove:hover { color:#c0392b; }
+
+  /* Claim seat button */
+  .claim-btn { margin-top:auto; padding-top:10px; }
   .btn {
     display:inline-block; padding:10px 22px; border-radius:9px;
     font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700;
@@ -134,12 +135,42 @@
   .btn-danger { background:transparent; color:#c0392b; border:1.5px solid #c0392b; }
   .btn-danger:hover { background:#c0392b; color:#fff; }
 
-  /* ── Empty state ── */
-  .empty-state { text-align:center; padding:60px 20px; color:var(--gray); }
-  .empty-state .empty-icon { font-size:48px; margin-bottom:12px; }
-  .empty-state h3 { font-size:18px; font-weight:700; margin-bottom:6px; color:var(--text); }
+  /* Needs sidebar */
+  .needs-sidebar { position:sticky; top:88px; }
+  .needs-panel {
+    background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .needs-panel-header {
+    background: #fef3c7; border-bottom:1px solid #fde68a;
+    padding:14px 18px;
+  }
+  .needs-panel-title { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1.5px; color:#92400e; }
+  .needs-panel-sub { font-size:12px; color:#a16207; margin-top:2px; }
+  .needs-list { padding:12px; display:flex; flex-direction:column; gap:8px; min-height:60px; }
+  .needs-empty { text-align:center; padding:20px; color:var(--gray); font-size:13px; font-style:italic; }
 
-  /* ── Form ── */
+  /* Draggable need cards */
+  .need-chip {
+    background:var(--white); border:1.5px solid #fde68a;
+    border-radius:10px; padding:10px 12px;
+    display:flex; align-items:center; gap:10px;
+    cursor:grab; user-select:none; transition:all 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .need-chip:hover { border-color:#f59e0b; box-shadow:0 4px 12px rgba(0,0,0,0.1); transform:translateY(-1px); }
+  .need-chip.dragging { opacity:0.4; cursor:grabbing; }
+  .need-chip-icon { font-size:20px; flex-shrink:0; }
+  .need-chip-name { font-weight:700; font-size:14px; color:var(--text); }
+  .need-chip-note { font-size:11px; color:var(--gray); margin-top:1px; }
+  .need-chip-remove { margin-left:auto; background:none; border:none; cursor:pointer; font-size:14px; opacity:0.3; transition:opacity 0.12s; padding:2px; }
+  .need-chip-remove:hover { opacity:1; }
+
+  /* Empty state */
+  .empty-state { text-align:center; padding:50px 20px; color:var(--gray); }
+  .empty-state .empty-icon { font-size:44px; margin-bottom:10px; }
+  .empty-state h3 { font-size:17px; font-weight:700; margin-bottom:5px; color:var(--text); }
+
+  /* Forms */
   .form-card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:32px; max-width:560px; }
   .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   .form-group { display:flex; flex-direction:column; gap:6px; }
@@ -153,7 +184,7 @@
   input:focus, select:focus { border-color:var(--blue); background:#fff; }
   .form-actions { margin-top:20px; }
 
-  /* ── Admin ── */
+  /* Admin */
   .admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
   .events-list { display:flex; flex-direction:column; gap:12px; }
   .event-item {
@@ -162,36 +193,44 @@
   }
   .event-item-name { font-weight:700; font-size:15px; }
   .event-item-date { font-size:12px; color:var(--gray); margin-top:2px; }
-  .icon-btn { background:none; border:none; cursor:pointer; font-size:17px; opacity:0.5; transition:opacity 0.15s; padding:2px; }
+  .icon-btn { background:none; border:none; cursor:pointer; font-size:17px; opacity:0.45; transition:opacity 0.15s; padding:2px; }
   .icon-btn:hover { opacity:1; }
 
-  /* ── Live indicator ── */
-  .passenger-row {
-    display:inline-flex; align-items:center; gap:4px;
-    margin:2px 2px 2px 0;
+  /* Modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,30,70,0.45); z-index:200; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--white); border-radius:var(--radius); padding:32px; max-width:420px; width:100%; box-shadow:0 16px 60px rgba(0,40,100,0.25); animation:popIn 0.2s ease; }
+  @keyframes popIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal h2 { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:1.5px; color:var(--blue-dark); margin-bottom:6px; }
+  .modal-sub { color:var(--gray); font-size:13px; margin-bottom:20px; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-actions .btn { flex:1; }
+
+  /* How-to banner */
+  .howto {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin-bottom: 28px;
   }
-  .passenger-tag.removable {
-    border-color: #f5c2c7;
-    background: #fff5f5;
+  .howto-card {
+    background: var(--white); border-radius: 12px; padding: 16px 18px;
+    box-shadow: var(--shadow); border-top: 3px solid var(--blue);
+    display: flex; flex-direction: column; gap: 6px;
   }
-  .remove-passenger-btn {
-    background: #c0392b; color: white; border: none;
-    border-radius: 99px; width: 18px; height: 18px;
-    font-size: 11px; line-height: 1; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: background 0.15s;
-    padding: 0;
+  .howto-card:nth-child(2) { border-color: #f59e0b; }
+  .howto-card:nth-child(3) { border-color: #22c55e; }
+  .howto-icon { font-size: 24px; }
+  .howto-title { font-weight: 700; font-size: 14px; color: var(--text); }
+  .howto-desc { font-size: 13px; color: var(--gray); line-height: 1.5; }
+  .howto-action {
+    display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700;
+    color: var(--blue); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+    background: none; border: none; padding: 0; font-family: 'DM Sans', sans-serif;
   }
-  .remove-passenger-btn:hover { background: #96281b; }
-  .manage-ride-btn {
-    margin-top: 8px;
-    font-size: 12px; padding: 6px 14px;
-    background: transparent; color: var(--gray);
-    border: 1.5px solid var(--gray-light); border-radius: 8px;
-    cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600;
-    transition: all 0.15s; width: 100%;
-  }
-  .manage-ride-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .howto-card:nth-child(2) .howto-action { color: #b45309; }
+  @media(max-width:640px) { .howto { grid-template-columns: 1fr; } }
+
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:var(--blue-dark); color:#fff; padding:12px 28px; border-radius:99px; font-weight:600; font-size:14px; z-index:300; opacity:0; pointer-events:none; transition:opacity 0.25s; white-space:nowrap; }
+  .toast.show { opacity:1; }
 
   @media(max-width:640px) {
     .admin-grid { grid-template-columns:1fr; }
@@ -199,81 +238,14 @@
     .header-nav { gap:4px; }
     .tab-btn { padding:6px 10px; font-size:11px; }
   }
-  .live-dot {
-    display:inline-block; width:8px; height:8px; border-radius:50%;
-    background:#22c55e; margin-right:6px; animation:livepulse 2s ease-in-out infinite;
-  }
-  @keyframes livepulse{0%,100%{opacity:1}50%{opacity:0.4}}
-
-  /* ── Modal ── */
-  .modal-overlay {
-    display:none; position:fixed; inset:0; background:rgba(0,30,70,0.45);
-    z-index:200; align-items:center; justify-content:center; padding:20px;
-  }
-  .modal-overlay.open { display:flex; }
-  .modal {
-    background:var(--white); border-radius:var(--radius); padding:32px;
-    max-width:420px; width:100%; box-shadow:0 16px 60px rgba(0,40,100,0.25);
-    animation:popIn 0.2s ease;
-  }
-  @keyframes popIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
-  .modal h2 { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:1.5px; color:var(--blue-dark); margin-bottom:6px; }
-  .modal-sub { color:var(--gray); font-size:13px; margin-bottom:20px; }
-  .modal-actions { display:flex; gap:10px; margin-top:20px; }
-  .modal-actions .btn { flex:1; }
-
-  .toast {
-    position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
-    background:var(--blue-dark); color:#fff; padding:12px 28px;
-    border-radius:99px; font-weight:600; font-size:14px; z-index:300;
-    opacity:0; pointer-events:none; transition:opacity 0.25s; white-space:nowrap;
-  }
-  .toast.show { opacity:1; }
-
-  /* ── Need a seat cards ── */
-  .need-section { margin-top: 48px; }
-  .need-section-heading {
-    font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:2px;
-    color:var(--blue-dark); margin-bottom:6px;
-  }
-  .need-section-sub { color:var(--gray); font-size:13px; margin-bottom:20px; }
-  .need-grid { display:flex; flex-wrap:wrap; gap:12px; }
-  .need-card {
-    background:var(--white); border-radius:12px; box-shadow:var(--shadow);
-    border-left: 4px solid #f59e0b;
-    padding: 14px 18px; display:flex; align-items:center; gap:14px;
-    min-width:220px; flex:1; max-width:320px;
-    transition: transform 0.15s;
-  }
-  .need-card:hover { transform:translateY(-2px); }
-  .need-card-icon { font-size:28px; flex-shrink:0; }
-  .need-card-name { font-weight:700; font-size:15px; color:var(--text); }
-  .need-card-event { font-size:12px; color:var(--gray); margin-top:2px; }
-  .need-card-note { font-size:12px; color:var(--text); margin-top:4px; font-style:italic; }
-  .need-card-remove {
-    margin-left:auto; background:none; border:none; font-size:16px;
-    cursor:pointer; opacity:0.35; transition:opacity 0.15s; flex-shrink:0; padding:2px;
-  }
-  .need-card-remove:hover { opacity:1; }
-
-  @media(max-width:640px) {
-    .need-card { max-width:100%; }
-  }
 </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading-screen">
   <div class="loading-crown">👑</div>
   <div class="loading-title">Vienna Monarchs</div>
   <div class="loading-dots"><span></span><span></span><span></span></div>
-</div>
-
-<!-- Firebase config warning (shown if not configured) -->
-<div id="config-banner">
-  <h3>⚠️ Firebase not configured yet</h3>
-  Open <code>index.html</code> in a text editor, find the <code>FIREBASE CONFIG</code> section near the top of the &lt;script&gt; block, and replace the placeholder values with your Firebase project credentials. See the <code>SETUP.md</code> file for step-by-step instructions.
 </div>
 
 <header>
@@ -297,41 +269,39 @@
   <!-- BOARD -->
   <div class="view active" id="view-board">
     <div class="section-heading">Ride Board</div>
-    <div class="section-sub"><span class="live-dot"></span>Live — updates in real time for all teammates.</div>
-    <div class="filter-bar" id="filter-bar">
-      <button class="filter-chip active" onclick="filterRides('ALL',this)">All Events</button>
-    </div>
-    <div class="rides-grid" id="rides-grid"></div>
+    <div class="section-sub"><span class="live-dot"></span>Live — updates instantly for everyone.</div>
 
-    <!-- Need a Seat section -->
-    <div class="need-section" id="need-section" style="display:none;">
-      <div class="need-section-heading">🙋 Looking for a Seat</div>
-      <div class="need-section-sub">These teammates still need a ride — if you have space, reach out!</div>
-      <div class="need-grid" id="need-grid"></div>
-    </div>
-  </div>
-
-  <!-- NEED A SEAT -->
-  <div class="view" id="view-need">
-    <div class="section-heading">Need a Seat?</div>
-    <div class="section-sub">Let your teammates know you're looking for a ride.</div>
-    <div class="form-card">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>Your Name</label>
-          <input type="text" id="need-name" placeholder="e.g. Anna Nowak">
-        </div>
-        <div class="form-group full">
-          <label>Event</label>
-          <select id="need-event"><option value="">— Select an event —</option></select>
-        </div>
-        <div class="form-group full">
-          <label>Note <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-          <input type="text" id="need-note" placeholder="e.g. Can be picked up at Westbahnhof">
-        </div>
+    <div class="howto">
+      <div class="howto-card">
+        <div class="howto-icon">🚗</div>
+        <div class="howto-title">Offering a ride?</div>
+        <div class="howto-desc">Click <strong>➕ Offer a Ride</strong> in the menu, fill in your details and how many seats you have free. Your car will appear on the board.</div>
+        <button class="howto-action" onclick="showView('offer')">Post a ride →</button>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="submitNeedSeat()">🙋 Post My Request</button>
+      <div class="howto-card">
+        <div class="howto-icon">🙋</div>
+        <div class="howto-title">Need a seat?</div>
+        <div class="howto-desc">Click <strong>🙋 Need a Seat</strong> in the menu and add your name. You'll appear in the sidebar on the right so drivers can see you.</div>
+        <button class="howto-action" onclick="showView('need')">Request a seat →</button>
+      </div>
+      <div class="howto-card">
+        <div class="howto-icon">🤝</div>
+        <div class="howto-title">Assigning seats?</div>
+        <div class="howto-desc">Drag a name from the <strong>yellow sidebar</strong> onto any car to assign them. You can also drag passengers between cars, or click <em>Claim a Seat</em> to add yourself directly.</div>
+      </div>
+    </div>
+
+    <div class="filter-bar" id="filter-bar"></div>
+    <div class="board-layout">
+      <div class="rides-grid" id="rides-grid"></div>
+      <div class="needs-sidebar">
+        <div class="needs-panel">
+          <div class="needs-panel-header">
+            <div class="needs-panel-title">🙋 Need a Seat</div>
+            <div class="needs-panel-sub">Drag a name onto a car below</div>
+          </div>
+          <div class="needs-list" id="needs-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -342,39 +312,36 @@
     <div class="section-sub">Let your teammates know you have space in your car.</div>
     <div class="form-card">
       <div class="form-grid">
-        <div class="form-group full">
-          <label>Your Name</label>
-          <input type="text" id="offer-name" placeholder="e.g. Max Mustermann">
-        </div>
-        <div class="form-group full">
-          <label>Event</label>
-          <select id="offer-event"><option value="">— Select an event —</option></select>
-        </div>
-        <div class="form-group">
-          <label>Departure Location</label>
-          <input type="text" id="offer-from" placeholder="e.g. Schwedenplatz">
-        </div>
-        <div class="form-group">
-          <label>Departure Time</label>
-          <input type="time" id="offer-time">
-        </div>
+        <div class="form-group full"><label>Your Name</label><input type="text" id="offer-name" placeholder="e.g. Max Mustermann"></div>
+        <div class="form-group full"><label>Event</label><select id="offer-event"><option value="">— Select an event —</option></select></div>
+        <div class="form-group"><label>Departure Location</label><input type="text" id="offer-from" placeholder="e.g. Schwedenplatz"></div>
+        <div class="form-group"><label>Departure Time</label><input type="time" id="offer-time"></div>
         <div class="form-group full">
           <label>Free Seats</label>
           <select id="offer-seats">
-            <option value="1">1 seat</option><option value="2">2 seats</option>
-            <option value="3" selected>3 seats</option><option value="4">4 seats</option>
-            <option value="5">5 seats</option><option value="6">6 seats</option><option value="7">7 seats</option>
+            <option value="1">1 seat</option><option value="2">2 seats</option><option value="3" selected>3 seats</option>
+            <option value="4">4 seats</option><option value="5">5 seats</option><option value="6">6 seats</option><option value="7">7 seats</option>
           </select>
         </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="submitOffer()">🚗 Post My Ride</button></div>
+    </div>
+  </div>
+
+  <!-- NEED A SEAT -->
+  <div class="view" id="view-need">
+    <div class="section-heading">Need a Seat?</div>
+    <div class="section-sub">Let your teammates know you're looking for a ride.</div>
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="form-group full"><label>Your Name</label><input type="text" id="need-name" placeholder="e.g. Anna Nowak"></div>
+        <div class="form-group full"><label>Event</label><select id="need-event"><option value="">— Select an event —</option></select></div>
         <div class="form-group full">
-          <label>Driver PIN (4 digits)</label>
-          <input type="password" id="offer-pin" maxlength="4" placeholder="Choose a PIN to manage your ride" inputmode="numeric">
-          <span style="font-size:11px;color:var(--gray);margin-top:2px;">You'll need this to remove passengers later.</span>
+          <label>Note <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <input type="text" id="need-note" placeholder="e.g. Can be picked up at Westbahnhof">
         </div>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="submitOffer()">🚗 Post My Ride</button>
-      </div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="submitNeedSeat()">🙋 Post My Request</button></div>
     </div>
   </div>
 
@@ -387,18 +354,10 @@
         <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Add New Event</div>
         <div class="form-card" style="padding:24px;">
           <div class="form-grid">
-            <div class="form-group full">
-              <label>Event Name</label>
-              <input type="text" id="admin-event-name" placeholder="e.g. League Game vs. Lions">
-            </div>
-            <div class="form-group full">
-              <label>Date</label>
-              <input type="date" id="admin-event-date">
-            </div>
+            <div class="form-group full"><label>Event Name</label><input type="text" id="admin-event-name" placeholder="e.g. League Game vs. Lions"></div>
+            <div class="form-group full"><label>Date</label><input type="date" id="admin-event-date"></div>
           </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" onclick="addEvent()">Add Event</button>
-          </div>
+          <div class="form-actions"><button class="btn btn-primary" onclick="addEvent()">Add Event</button></div>
         </div>
       </div>
       <div>
@@ -410,6 +369,7 @@
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">All Ride Offers</div>
       <div class="rides-grid" id="admin-rides-grid"></div>
     </div>
+    <div style="margin-top:40px;" id="admin-needs-section"></div>
   </div>
 
 </main>
@@ -419,10 +379,7 @@
   <div class="modal">
     <h2>Claim a Seat</h2>
     <div class="modal-sub" id="claim-modal-sub"></div>
-    <div class="form-group">
-      <label>Your Name</label>
-      <input type="text" id="claim-name" placeholder="e.g. Anna Nowak">
-    </div>
+    <div class="form-group"><label>Your Name</label><input type="text" id="claim-name" placeholder="e.g. Anna Nowak"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmClaim()">Confirm</button>
@@ -430,33 +387,11 @@
   </div>
 </div>
 
-<!-- DRIVER PIN MODAL -->
-<div class="modal-overlay" id="pin-modal">
-  <div class="modal">
-    <h2>Driver Access</h2>
-    <div class="modal-sub" id="pin-modal-sub">Enter your PIN to manage passengers.</div>
-    <div class="form-group">
-      <label>Your 4-digit PIN</label>
-      <input type="password" id="pin-input" maxlength="4" placeholder="••••" inputmode="numeric">
-    </div>
-    <div id="pin-error" style="color:#c0392b;font-size:13px;margin-top:8px;display:none;">Incorrect PIN. Try again.</div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closePinModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmPin()">Unlock</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-  // ─────────────────────────────────────────────
-  //  🔧 FIREBASE CONFIG — replace these values!
-  //     (copy from Firebase Console → Project Settings → Your apps)
-  // ─────────────────────────────────────────────
   const firebaseConfig = {
     apiKey:            "AIzaSyBOIN9JhPKJcHo-Uufni3fIrVAJRdTu0ZM",
     authDomain:        "vienna-monarchs-rides-e7aed.firebaseapp.com",
@@ -468,70 +403,58 @@
     measurementId:     "G-JHZ0KJBMH1"
   };
 
-  const isConfigured = !Object.values(firebaseConfig).some(v => v.startsWith("REPLACE_"));
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  if (!isConfigured) {
-    document.getElementById('loading-screen').classList.add('hidden');
-    document.getElementById('config-banner').style.display = 'block';
-  }
-
-  const app = isConfigured ? firebase.initializeApp(firebaseConfig) : null;
-  const db  = isConfigured ? firebase.database() : null;
-
-  // ── State ──
   let events = {}, rides = {}, needs = {};
   let activeFilter = 'ALL', claimTarget = null;
-  let unlockedRides = {}, pinTarget = null;
+  let dragNeedId = null;       // need chip being dragged
+  let dragPassenger = null;    // { rideId, key, name } passenger being dragged between cars
 
   // ── Helpers ──
   function fmtDate(d) {
     if (!d) return '';
-    const [y, m, day] = d.split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+    const [y,m,day] = d.split('-');
+    const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(day)} ${mo[parseInt(m)-1]} ${y}`;
   }
   function fmtTime(t) {
     if (!t) return '';
-    let [h, min] = t.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h}:${String(min).padStart(2,'0')} ${ampm}`;
+    let [h,min] = t.split(':').map(Number);
+    const ap = h>=12?'PM':'AM'; h=h%12||12;
+    return `${h}:${String(min).padStart(2,'0')} ${ap}`;
   }
   function getEvent(id) { return events[id]; }
   function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2800);
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2800);
   }
 
   // ── Views ──
   const tabs = document.querySelectorAll('.tab-btn');
   const tabViews = ['board','offer','need','admin'];
   function showView(id) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + id).classList.add('active');
-    tabs.forEach((btn, i) => btn.classList.toggle('active', tabViews[i] === id));
-    if (id === 'offer') populateEventSelect('offer-event');
-    if (id === 'need')  populateEventSelect('need-event');
-    if (id === 'admin') renderAdmin();
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+id).classList.add('active');
+    tabs.forEach((b,i)=>b.classList.toggle('active', tabViews[i]===id));
+    if (id==='offer') populateEventSelect('offer-event');
+    if (id==='need')  populateEventSelect('need-event');
+    if (id==='admin') renderAdmin();
   }
 
   // ── Filter ──
   function buildFilterBar() {
     const bar = document.getElementById('filter-bar');
-    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    const evArr = Object.entries(events).sort((a,b)=>a[1].date.localeCompare(b[1].date));
     bar.innerHTML = `<button class="filter-chip ${activeFilter==='ALL'?'active':''}" onclick="filterRides('ALL',this)">All Events</button>` +
-      evArr.map(([id, e]) =>
-        `<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name} <span style="opacity:0.7;font-weight:400;">· ${fmtDate(e.date)}</span></button>`
-      ).join('');
+      evArr.map(([id,e])=>`<button class="filter-chip ${activeFilter===id?'active':''}" onclick="filterRides('${id}',this)">${e.name} <span style="opacity:0.7;font-weight:400;">· ${fmtDate(e.date)}</span></button>`).join('');
   }
   function filterRides(id, btn) {
     activeFilter = id;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
     btn.classList.add('active');
-    renderRides();
-    renderNeeds();
+    renderRides(); renderNeeds();
   }
 
   // ── Board ──
@@ -539,40 +462,39 @@
 
   function renderRides() {
     const grid = document.getElementById('rides-grid');
-    const ridesArr = Object.entries(rides)
-      .map(([id, r]) => ({ ...r, id }))
-      .filter(r => activeFilter === 'ALL' || r.eventId === activeFilter);
-    if (!ridesArr.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">🚗</div>
-        <h3>No rides posted yet</h3>
-        <p>Be the first to offer a ride to this event!</p>
-      </div>`;
+    const arr = Object.entries(rides).map(([id,r])=>({...r,id}))
+      .filter(r=>activeFilter==='ALL'||r.eventId===activeFilter);
+    if (!arr.length) {
+      grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🚗</div><h3>No rides posted yet</h3><p>Be the first to offer a ride!</p></div>`;
       return;
     }
-    grid.innerHTML = ridesArr.map(r => rideCardHTML(r, false)).join('');
-  }
-
-  function renderNeeds() {
-    const section = document.getElementById('need-section');
-    const grid = document.getElementById('need-grid');
-    const needsArr = Object.entries(needs)
-      .map(([id, n]) => ({ ...n, id }))
-      .filter(n => activeFilter === 'ALL' || n.eventId === activeFilter);
-    if (!needsArr.length) { section.style.display = 'none'; return; }
-    section.style.display = 'block';
-    grid.innerHTML = needsArr.map(n => {
-      const ev = getEvent(n.eventId);
-      return `<div class="need-card">
-        <div class="need-card-icon">🙋</div>
-        <div>
-          <div class="need-card-name">${n.name}</div>
-          <div class="need-card-event">${ev ? ev.name : '—'} · ${ev ? fmtDate(ev.date) : ''}</div>
-          ${n.note ? `<div class="need-card-note">"${n.note}"</div>` : ''}
-        </div>
-        <button class="need-card-remove" title="Remove request" onclick="removeNeed('${n.id}')">✕</button>
-      </div>`;
-    }).join('');
+    grid.innerHTML = arr.map(r=>rideCardHTML(r,false)).join('');
+    // attach drop listeners
+    arr.forEach(r=>{
+      const zone = document.getElementById('drop-'+r.id);
+      if (!zone) return;
+      zone.addEventListener('dragover', e=>{
+        e.preventDefault();
+        zone.classList.add('drag-active');
+        document.getElementById('card-'+r.id).classList.add('drag-over');
+      });
+      zone.addEventListener('dragleave', ()=>{
+        zone.classList.remove('drag-active');
+        document.getElementById('card-'+r.id).classList.remove('drag-over');
+      });
+      zone.addEventListener('drop', e=>{
+        e.preventDefault();
+        zone.classList.remove('drag-active');
+        document.getElementById('card-'+r.id).classList.remove('drag-over');
+        if (dragNeedId) {
+          dropNeedOnRide(dragNeedId, r.id);
+          dragNeedId = null;
+        } else if (dragPassenger) {
+          dropPassengerOnRide(dragPassenger, r.id);
+          dragPassenger = null;
+        }
+      });
+    });
   }
 
   function rideCardHTML(r, isAdmin) {
@@ -580,78 +502,129 @@
     const passengerEntries = r.passengers ? Object.entries(r.passengers) : [];
     const avail = parseInt(r.seats) - passengerEntries.length;
     const full = avail <= 0;
-    const unlocked = unlockedRides[r.id];
 
-    const passHtml = passengerEntries.length
-      ? `<div class="passengers-section">
-          <div class="passengers-label">Passengers</div>
-          ${passengerEntries.map(([key, name]) =>
-            unlocked
-              ? `<span class="passenger-row">
-                   <span class="passenger-tag removable">👤 ${name}</span>
-                   <button class="remove-passenger-btn" title="Remove ${name}" onclick="removePassenger('${r.id}','${key}')">✕</button>
-                 </span>`
-              : `<span class="passenger-tag">👤 ${name}</span>`
-          ).join('')}
-         </div>` : '';
+    const passHTML = passengerEntries.map(([key,name])=>
+      `<span class="passenger-tag" draggable="true"
+        ondragstart="startPassengerDrag(event,'${r.id}','${key}','${name.replace(/'/g,"&#39;")}')"
+        ondragend="endPassengerDrag(event)">
+        ✋ ${name}<button class="passenger-remove" onclick="removePassenger('${r.id}','${key}')" title="Remove">✕</button>
+      </span>`
+    ).join('');
 
-    const manageBtn = !isAdmin && r.pin
-      ? unlocked
-        ? `<button class="manage-ride-btn" style="color:#1a6632;border-color:#a3d9b1;" onclick="lockRide('${r.id}')">🔒 Lock driver mode</button>`
-        : `<button class="manage-ride-btn" onclick="openPinModal('${r.id}')">🔑 I'm the driver — manage ride</button>`
-      : '';
+    const dropHint = full ? '' : `<span class="drop-zone-hint">Drop a teammate here</span>`;
+    const dropZone = !isAdmin ? `<div class="drop-zone ${passengerEntries.length?'has-passengers':''}" id="drop-${r.id}">${passHTML}${!full?dropHint:''}</div>` : '';
+    const adminPassengers = isAdmin && passengerEntries.length ? `<div style="margin-top:8px;">${passengerEntries.map(([,n])=>`<span class="passenger-tag">👤 ${n}</span>`).join('')}</div>` : '';
 
-    const adminActions = isAdmin
-      ? `<div style="padding:0 20px 16px;display:flex;gap:8px;">
-           <button class="btn btn-danger" style="font-size:12px;padding:7px 14px;" onclick="deleteRide('${r.id}')">🗑 Remove</button>
-         </div>` : '';
+    const adminActions = isAdmin ? `<div style="padding:0 18px 14px;"><button class="btn btn-danger" style="font-size:12px;padding:7px 14px;" onclick="deleteRide('${r.id}')">🗑 Remove</button></div>` : '';
 
-    return `<div class="ride-card">
+    return `<div class="ride-card" id="card-${r.id}">
       <div class="ride-card-header">
         <div class="ride-event-label">Event</div>
-        <div class="ride-event-name">${ev ? ev.name : '—'}</div>
-        ${ev ? `<div class="ride-event-date">📅 ${fmtDate(ev.date)}</div>` : ''}
+        <div class="ride-event-name">${ev?ev.name:'—'}</div>
+        ${ev?`<div class="ride-event-date">📅 ${fmtDate(ev.date)}</div>`:''}
       </div>
       <div class="ride-card-body">
         <div class="ride-driver-name">🧑 ${r.driver}</div>
         <div class="ride-meta">
-          <div class="ride-meta-row"><span class="icon">📍</span> ${r.from}</div>
-          <div class="ride-meta-row"><span class="icon">🕐</span> Departs ${fmtTime(r.time)}</div>
+          <div class="ride-meta-row"><span>📍</span> ${r.from}</div>
+          <div class="ride-meta-row"><span>🕐</span> Departs ${fmtTime(r.time)}</div>
         </div>
-        <div class="seats-badge ${full ? 'full' : 'open'}">
-          ${full ? '🔴 Full' : `🟢 ${avail} seat${avail !== 1 ? 's' : ''} available`}
-        </div>
-        ${passHtml}
-        ${manageBtn}
-        ${!isAdmin ? `<div class="claim-btn">
-          <button class="btn btn-primary" ${full ? 'disabled' : ''} onclick="openClaim('${r.id}')">
-            ${full ? 'No seats left' : 'Claim a Seat'}
-          </button>
-        </div>` : ''}
+        <div class="seats-badge ${full?'full':'open'}">${full?'🔴 Full':`🟢 ${avail} seat${avail!==1?'s':''} available`}</div>
+        ${dropZone}${adminPassengers}
+        ${!isAdmin?`<div class="claim-btn"><button class="btn btn-primary" ${full?'disabled':''} onclick="openClaim('${r.id}')">${full?'No seats left':'Claim a Seat'}</button></div>`:''}
       </div>
       ${adminActions}
     </div>`;
   }
 
-  // ── Claim seat ──
+  // ── Needs sidebar ──
+  function renderNeeds() {
+    const list = document.getElementById('needs-list');
+    const arr = Object.entries(needs).map(([id,n])=>({...n,id}))
+      .filter(n=>activeFilter==='ALL'||n.eventId===activeFilter);
+    if (!arr.length) {
+      list.innerHTML='<div class="needs-empty">No one needs a seat yet 🎉</div>';
+      return;
+    }
+    list.innerHTML = arr.map(n=>{
+      const ev = getEvent(n.eventId);
+      return `<div class="need-chip" id="need-chip-${n.id}" draggable="true"
+        ondragstart="startDrag(event,'${n.id}')" ondragend="endDrag(event,'${n.id}')">
+        <div class="need-chip-icon">🙋</div>
+        <div>
+          <div class="need-chip-name">${n.name}</div>
+          ${ev?`<div class="need-chip-note">${ev.name}${n.note?' · '+n.note:''}</div>`:''}
+        </div>
+        <button class="need-chip-remove" onclick="removeNeed('${n.id}')" title="Remove">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Drag & drop ──
+  function startDrag(e, needId) {
+    dragNeedId = needId;
+    dragPassenger = null;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(()=>{ const el=document.getElementById('need-chip-'+needId); if(el) el.classList.add('dragging'); }, 0);
+  }
+  function endDrag(e, needId) {
+    const el=document.getElementById('need-chip-'+needId); if(el) el.classList.remove('dragging');
+    dragNeedId = null;
+  }
+
+  function startPassengerDrag(e, rideId, key, name) {
+    dragPassenger = { rideId, key, name };
+    dragNeedId = null;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function endPassengerDrag(e) {
+    dragPassenger = null;
+  }
+
+  function dropNeedOnRide(needId, rideId) {
+    const n = needs[needId]; const r = rides[rideId];
+    if (!n || !r) return;
+    const passengers = r.passengers ? Object.values(r.passengers) : [];
+    if (passengers.length >= parseInt(r.seats)) { showToast('⚠️ That car is full!'); return; }
+    if (n.eventId !== r.eventId) { showToast("⚠️ Event mismatch — they're going to different events."); return; }
+    db.ref(`rides/${rideId}/passengers`).push(n.name);
+    db.ref(`needs/${needId}`).remove();
+    showToast(`✅ ${n.name} added to ${r.driver}'s car!`);
+  }
+
+  function dropPassengerOnRide(p, targetRideId) {
+    if (p.rideId === targetRideId) return; // dropped on same car, do nothing
+    const targetRide = rides[targetRideId];
+    if (!targetRide) return;
+    const targetPassengers = targetRide.passengers ? Object.values(targetRide.passengers) : [];
+    if (targetPassengers.length >= parseInt(targetRide.seats)) { showToast('⚠️ That car is full!'); return; }
+    const sourceRide = rides[p.rideId];
+    if (sourceRide && sourceRide.eventId !== targetRide.eventId) { showToast("⚠️ Event mismatch — different events."); return; }
+    // Move: add to new car, remove from old
+    db.ref(`rides/${targetRideId}/passengers`).push(p.name);
+    db.ref(`rides/${p.rideId}/passengers/${p.key}`).remove();
+    showToast(`✅ ${p.name} moved to ${targetRide.driver}'s car!`);
+  }
+
+  // ── Remove passenger ──
+  function removePassenger(rideId, key) {
+    db.ref(`rides/${rideId}/passengers/${key}`).remove();
+    showToast('Passenger removed.');
+  }
+
+  // ── Claim seat (manual) ──
   function openClaim(rideId) {
     claimTarget = rideId;
-    const r = rides[rideId];
-    const ev = getEvent(r.eventId);
-    document.getElementById('claim-modal-sub').textContent =
-      `Riding with ${r.driver} to "${ev ? ev.name : ''}"`;
+    const r = rides[rideId]; const ev = getEvent(r.eventId);
+    document.getElementById('claim-modal-sub').textContent = `Riding with ${r.driver} to "${ev?ev.name:''}"`;
     document.getElementById('claim-name').value = '';
     document.getElementById('claim-modal').classList.add('open');
   }
-  function closeModal() {
-    document.getElementById('claim-modal').classList.remove('open');
-    claimTarget = null;
-  }
+  function closeModal() { document.getElementById('claim-modal').classList.remove('open'); claimTarget=null; }
   function confirmClaim() {
     const name = document.getElementById('claim-name').value.trim();
     if (!name) { showToast('Please enter your name.'); return; }
-    const r = rides[claimTarget];
-    if (!r) return;
+    const r = rides[claimTarget]; if (!r) return;
     const passengers = r.passengers ? Object.values(r.passengers) : [];
     if (passengers.includes(name)) { showToast('You already claimed a seat!'); return; }
     if (passengers.length >= parseInt(r.seats)) { showToast('Sorry, no seats left!'); return; }
@@ -660,194 +633,106 @@
     showToast(`✅ Seat claimed! Have a great game, ${name}!`);
   }
 
-  // ── Driver PIN ──
-  function openPinModal(rideId) {
-    pinTarget = rideId;
-    const r = rides[rideId];
-    document.getElementById('pin-modal-sub').textContent = `Enter your PIN to manage ${r.driver}'s ride.`;
-    document.getElementById('pin-input').value = '';
-    document.getElementById('pin-error').style.display = 'none';
-    document.getElementById('pin-modal').classList.add('open');
-    setTimeout(() => document.getElementById('pin-input').focus(), 100);
-  }
-  function closePinModal() {
-    document.getElementById('pin-modal').classList.remove('open');
-    pinTarget = null;
-  }
-  function confirmPin() {
-    const entered = document.getElementById('pin-input').value.trim();
-    const r = rides[pinTarget];
-    if (!r) return;
-    if (entered === String(r.pin)) {
-      unlockedRides[pinTarget] = true;
-      closePinModal();
-      showToast('🔓 Driver mode on — you can now remove passengers.');
-      renderBoard();
-    } else {
-      document.getElementById('pin-error').style.display = 'block';
-      document.getElementById('pin-input').value = '';
-      document.getElementById('pin-input').focus();
-    }
-  }
-  document.getElementById('pin-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') confirmPin();
-  });
-  function lockRide(rideId) {
-    delete unlockedRides[rideId];
-    renderBoard();
-  }
-
-  // ── Remove passenger ──
-  function removePassenger(rideId, passengerKey) {
-    if (!unlockedRides[rideId]) return;
-    db.ref(`rides/${rideId}/passengers/${passengerKey}`).remove();
-    showToast('Passenger removed.');
-  }
-
   // ── Need a seat ──
   function populateEventSelect(selId) {
     const sel = document.getElementById(selId);
-    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    const arr = Object.entries(events).sort((a,b)=>a[1].date.localeCompare(b[1].date));
     sel.innerHTML = '<option value="">— Select an event —</option>' +
-      evArr.map(([id, e]) => `<option value="${id}">${e.name} (${fmtDate(e.date)})</option>`).join('');
+      arr.map(([id,e])=>`<option value="${id}">${e.name} (${fmtDate(e.date)})</option>`).join('');
   }
   function submitNeedSeat() {
-    const name    = document.getElementById('need-name').value.trim();
-    const eventId = document.getElementById('need-event').value;
-    const note    = document.getElementById('need-note').value.trim();
-    if (!name || !eventId) { showToast('Please fill in your name and event.'); return; }
-    db.ref('needs').push({ name, eventId, note });
-    showToast('🙋 Request posted! Drivers will see you need a seat.');
-    document.getElementById('need-name').value = '';
-    document.getElementById('need-event').value = '';
-    document.getElementById('need-note').value = '';
+    const name=document.getElementById('need-name').value.trim();
+    const eventId=document.getElementById('need-event').value;
+    const note=document.getElementById('need-note').value.trim();
+    if (!name||!eventId) { showToast('Please fill in your name and event.'); return; }
+    db.ref('needs').push({name,eventId,note});
+    showToast('🙋 Request posted!');
+    document.getElementById('need-name').value='';
+    document.getElementById('need-event').value='';
+    document.getElementById('need-note').value='';
     showView('board');
   }
-  function removeNeed(id) {
-    if (!confirm('Remove this seat request?')) return;
-    db.ref(`needs/${id}`).remove();
-    showToast('Request removed.');
-  }
+  function removeNeed(id) { db.ref(`needs/${id}`).remove(); showToast('Request removed.'); }
 
   // ── Offer ride ──
   function submitOffer() {
-    const name    = document.getElementById('offer-name').value.trim();
-    const eventId = document.getElementById('offer-event').value;
-    const from    = document.getElementById('offer-from').value.trim();
-    const time    = document.getElementById('offer-time').value;
-    const seats   = document.getElementById('offer-seats').value;
-    const pin     = document.getElementById('offer-pin').value.trim();
-    if (!name || !eventId || !from || !time) { showToast('Please fill in all fields.'); return; }
-    if (!pin || !/^\d{4}$/.test(pin)) { showToast('Please enter a 4-digit PIN.'); return; }
-    db.ref('rides').push({ eventId, driver: name, from, time, seats: parseInt(seats), pin });
-    showToast('🚗 Ride posted! Your teammates will see it on the board.');
-    document.getElementById('offer-name').value = '';
-    document.getElementById('offer-event').value = '';
-    document.getElementById('offer-from').value = '';
-    document.getElementById('offer-time').value = '';
-    document.getElementById('offer-seats').value = '3';
-    document.getElementById('offer-pin').value = '';
+    const name=document.getElementById('offer-name').value.trim();
+    const eventId=document.getElementById('offer-event').value;
+    const from=document.getElementById('offer-from').value.trim();
+    const time=document.getElementById('offer-time').value;
+    const seats=document.getElementById('offer-seats').value;
+    if (!name||!eventId||!from||!time) { showToast('Please fill in all fields.'); return; }
+    db.ref('rides').push({eventId,driver:name,from,time,seats:parseInt(seats)});
+    showToast('🚗 Ride posted!');
+    document.getElementById('offer-name').value='';
+    document.getElementById('offer-event').value='';
+    document.getElementById('offer-from').value='';
+    document.getElementById('offer-time').value='';
+    document.getElementById('offer-seats').value='3';
     showView('board');
   }
 
   // ── Admin ──
   function renderAdmin() {
     const list = document.getElementById('admin-events-list');
-    const evArr = Object.entries(events).sort((a,b) => a[1].date.localeCompare(b[1].date));
+    const evArr = Object.entries(events).sort((a,b)=>a[1].date.localeCompare(b[1].date));
     list.innerHTML = evArr.length
-      ? evArr.map(([id, e]) => `
-          <div class="event-item">
-            <div class="event-item-info">
-              <div class="event-item-name">${e.name}</div>
-              <div class="event-item-date">📅 ${fmtDate(e.date)}</div>
-            </div>
-            <button class="icon-btn" onclick="deleteEvent('${id}')">🗑</button>
-          </div>`).join('')
+      ? evArr.map(([id,e])=>`<div class="event-item"><div><div class="event-item-name">${e.name}</div><div class="event-item-date">📅 ${fmtDate(e.date)}</div></div><button class="icon-btn" onclick="deleteEvent('${id}')">🗑</button></div>`).join('')
       : '<div style="color:var(--gray);font-size:14px;">No events yet.</div>';
 
     const grid = document.getElementById('admin-rides-grid');
-    const ridesArr = Object.entries(rides).map(([id, r]) => ({ ...r, id }));
+    const ridesArr = Object.entries(rides).map(([id,r])=>({...r,id}));
     grid.innerHTML = ridesArr.length
-      ? ridesArr.map(r => rideCardHTML(r, true)).join('')
+      ? ridesArr.map(r=>rideCardHTML(r,true)).join('')
       : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🚗</div><h3>No rides yet</h3></div>`;
 
-    const needsArr = Object.entries(needs).map(([id, n]) => ({ ...n, id }));
-    let needsAdmin = document.getElementById('admin-needs-section');
-    if (!needsAdmin) {
-      needsAdmin = document.createElement('div');
-      needsAdmin.id = 'admin-needs-section';
-      needsAdmin.style.marginTop = '40px';
-      document.getElementById('view-admin').appendChild(needsAdmin);
-    }
-    needsAdmin.innerHTML = `
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Seat Requests</div>
-      ${needsArr.length ? `<div class="need-grid">${needsArr.map(n => {
-        const ev = getEvent(n.eventId);
-        return `<div class="need-card">
-          <div class="need-card-icon">🙋</div>
-          <div>
-            <div class="need-card-name">${n.name}</div>
-            <div class="need-card-event">${ev ? ev.name : '—'} · ${ev ? fmtDate(ev.date) : ''}</div>
-            ${n.note ? `<div class="need-card-note">"${n.note}"</div>` : ''}
-          </div>
-          <button class="need-card-remove" onclick="deleteNeed('${n.id}')">🗑</button>
-        </div>`;
-      }).join('')}</div>`
-      : '<div style="color:var(--gray);font-size:14px;">No seat requests.</div>'}`;
+    const needsArr = Object.entries(needs).map(([id,n])=>({...n,id}));
+    const ns = document.getElementById('admin-needs-section');
+    ns.innerHTML = `<div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--blue-dark);margin-bottom:16px;">Seat Requests</div>` +
+      (needsArr.length
+        ? needsArr.map(n=>{const ev=getEvent(n.eventId);return `<div class="event-item" style="margin-bottom:8px;"><div><div class="event-item-name">${n.name}</div><div class="event-item-date">${ev?ev.name:'—'}${n.note?' · '+n.note:''}</div></div><button class="icon-btn" onclick="deleteNeed('${n.id}')">🗑</button></div>`;}).join('')
+        : '<div style="color:var(--gray);font-size:14px;">No seat requests.</div>');
   }
 
   function addEvent() {
-    const name = document.getElementById('admin-event-name').value.trim();
-    const date = document.getElementById('admin-event-date').value;
-    if (!name || !date) { showToast('Please fill in event name and date.'); return; }
-    db.ref('events').push({ name, date });
-    document.getElementById('admin-event-name').value = '';
-    document.getElementById('admin-event-date').value = '';
+    const name=document.getElementById('admin-event-name').value.trim();
+    const date=document.getElementById('admin-event-date').value;
+    if (!name||!date) { showToast('Please fill in event name and date.'); return; }
+    db.ref('events').push({name,date});
+    document.getElementById('admin-event-name').value='';
+    document.getElementById('admin-event-date').value='';
     showToast('📅 Event added!');
   }
   function deleteEvent(id) {
-    if (!confirm('Delete this event? Rides linked to it will also be removed.')) return;
+    if (!confirm('Delete this event? All linked rides and requests will be removed.')) return;
     db.ref(`events/${id}`).remove();
-    Object.entries(rides).filter(([,r]) => r.eventId === id).forEach(([rid]) => db.ref(`rides/${rid}`).remove());
-    Object.entries(needs).filter(([,n]) => n.eventId === id).forEach(([nid]) => db.ref(`needs/${nid}`).remove());
+    Object.entries(rides).filter(([,r])=>r.eventId===id).forEach(([rid])=>db.ref(`rides/${rid}`).remove());
+    Object.entries(needs).filter(([,n])=>n.eventId===id).forEach(([nid])=>db.ref(`needs/${nid}`).remove());
     showToast('Event removed.');
   }
-  function deleteRide(id) {
-    if (!confirm('Remove this ride offer?')) return;
-    db.ref(`rides/${id}`).remove();
-    showToast('Ride removed.');
-  }
-  function deleteNeed(id) {
-    if (!confirm('Remove this seat request?')) return;
-    db.ref(`needs/${id}`).remove();
-    showToast('Request removed.');
-  }
+  function deleteRide(id) { if (!confirm('Remove this ride?')) return; db.ref(`rides/${id}`).remove(); showToast('Ride removed.'); }
+  function deleteNeed(id) { if (!confirm('Remove this request?')) return; db.ref(`needs/${id}`).remove(); showToast('Request removed.'); }
 
-  // ── Real-time listeners ──
-  if (isConfigured) {
-    let initialLoad = true;
-    db.ref('events').on('value', snapshot => {
-      events = snapshot.val() || {};
-      renderBoard();
-      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-      if (document.getElementById('view-offer').classList.contains('active')) populateEventSelect('offer-event');
-      if (document.getElementById('view-need').classList.contains('active')) populateEventSelect('need-event');
-      if (initialLoad) {
-        document.getElementById('loading-screen').classList.add('hidden');
-        initialLoad = false;
-      }
-    });
-    db.ref('rides').on('value', snapshot => {
-      rides = snapshot.val() || {};
-      renderBoard();
-      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-    });
-    db.ref('needs').on('value', snapshot => {
-      needs = snapshot.val() || {};
-      renderBoard();
-      if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-    });
-  }
+  // ── Firebase listeners ──
+  let initialLoad = true;
+  db.ref('events').on('value', snap=>{
+    events=snap.val()||{};
+    renderBoard();
+    if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+    if (document.getElementById('view-offer').classList.contains('active')) populateEventSelect('offer-event');
+    if (document.getElementById('view-need').classList.contains('active')) populateEventSelect('need-event');
+    if (initialLoad) { document.getElementById('loading-screen').classList.add('hidden'); initialLoad=false; }
+  });
+  db.ref('rides').on('value', snap=>{
+    rides=snap.val()||{};
+    renderBoard();
+    if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+  });
+  db.ref('needs').on('value', snap=>{
+    needs=snap.val()||{};
+    renderBoard();
+    if (document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+  });
 </script>
 </body>
 </html>
